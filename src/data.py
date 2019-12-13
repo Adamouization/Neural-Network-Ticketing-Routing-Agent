@@ -26,12 +26,30 @@ class Data:
         # Data pre-processing encoders
         self.label_encoder = preprocessing.LabelEncoder()
 
+    def parse_csv_headers(self, csv_file_name):
+        file = pd.read_csv("{}{}.csv".format(self.data_directory, csv_file_name))
+        return list(file.head(0))
+
     def read_csv_file(self, csv_file_name, headers):
         return pd.read_csv(
             "{}{}.csv".format(self.data_directory, csv_file_name),
             names=headers,
             skiprows=[0]
         )
+
+    def encode_input_data(self):
+        encoded_value = int()
+        for index, row in self.input_data.iterrows():
+            for i, v in row.iteritems():
+                if v not in [0, 1]:
+                    if v == "No":
+                        encoded_value = 0
+                    elif v == "Yes":
+                        encoded_value = 1
+                    else:
+                        print("Error while encoding input data")
+                        exit(1)
+                    self.input_data.at[index, i] = encoded_value
 
     def encode_target_data(self):
         integer_encoded = self._integer_encode()
@@ -52,15 +70,6 @@ class Data:
         onehot_encoded = one_hot_encoder.fit_transform(binary_encode)
         return onehot_encoded
 
-    def inverse_encoding(self, onehot_encoded):
-        # Invert first example
-        inverted = self.label_encoder.inverse_transform([np.argmax(onehot_encoded[0, :])])
-        print("Inverted encoding: {}".format(inverted))
-
-    def parse_csv_headers(self, csv_file_name):
-        file = pd.read_csv("{}{}.csv".format(self.data_directory, csv_file_name))
-        return list(file.head(0))
-
     def print_input_data(self):
         print("Input data:")
         print(self.input_data)
@@ -72,3 +81,10 @@ class Data:
     def print_encoded_target_data(self):
         print("One-hot encoded target data:")
         print(self.target_data_encoded)
+
+
+def inverse_encoding(onehot_encoded):
+    label_encoder = preprocessing.LabelEncoder()
+    # Invert first example
+    return label_encoder.inverse_transform([np.argmax(onehot_encoded[0, :])])
+    # print("Inverted encoding: {}".format(inverted))
