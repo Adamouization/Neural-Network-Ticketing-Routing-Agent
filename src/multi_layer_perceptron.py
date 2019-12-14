@@ -11,6 +11,10 @@ import src.config as config
 from src.data import inverse_encoding, inverse_encoding_no_categories
 
 
+# Global variables
+fontsize = 12
+
+
 class MultiLayerPerceptron:
 
     def __init__(self, name, input_data, target_data, hidden_layers_size, solver, activation_function,
@@ -56,8 +60,8 @@ class MultiLayerPerceptron:
     def show_results(self):
         # Plot error loss curve.
         plt.plot(self.mlp.loss_curve_)
-        plt.xlabel("Epochs")
-        plt.ylabel("Error loss")
+        plt.xlabel("Epochs", fontsize=fontsize)
+        plt.ylabel("Error loss", fontsize=fontsize)
         plt.show()
 
         # Calculate confusion matrix
@@ -68,7 +72,9 @@ class MultiLayerPerceptron:
         cm = pd.DataFrame(data=cm, index=[i for i in self.categories], columns=[i for i in self.categories])
 
         # Display confusion matrix as a heat map.
-        sn.heatmap(cm, annot=True, annot_kws={"size": 16}, cmap="YlGnBu")
+        sn.heatmap(cm, cmap="YlGnBu", annot=True, annot_kws={"size": fontsize})
+        plt.xlabel("Predictions", fontsize=fontsize)
+        plt.ylabel("Ground truth values", fontsize=fontsize)
         plt.show()
 
         if config.debug:
