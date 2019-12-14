@@ -3,13 +3,12 @@ import joblib
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sn
-from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 
 import src.config as config
 from src.data import inverse_encoding, inverse_encoding_no_categories
-
 
 # Global variables
 fontsize = 12
