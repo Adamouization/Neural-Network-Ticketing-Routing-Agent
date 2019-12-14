@@ -1,10 +1,13 @@
 import joblib
 
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sn
 from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 
+import src.config as config
 from src.data import inverse_encoding, inverse_encoding_no_categories
 
 
@@ -41,26 +44,39 @@ class MultiLayerPerceptron:
     def train(self):
         self.mlp.fit(self.X_train, self.y_train)
 
-    def show_predictions(self):
+    def make_predictions(self):
         self.predictions = self.mlp.predict(self.X_test)
         probability_predictions = self.mlp.predict_proba(self.X_test)
-        for i, p in enumerate(inverse_encoding(self.predictions)):
-            print("{}\nPrediction = {}: {}\n".format(self.X_test.iloc[i].to_frame().T,
-                                                     self.categories[p],
-                                                     probability_predictions[i].tolist()))
+        if config.debug:
+            for i, p in enumerate(inverse_encoding(self.predictions)):
+                print("{}\nPrediction = {}: {}\n".format(self.X_test.iloc[i].to_frame().T,
+                                                         self.categories[p],
+                                                         probability_predictions[i].tolist()))
 
     def show_results(self):
+        # Plot error loss curve.
         plt.plot(self.mlp.loss_curve_)
         plt.xlabel("Epochs")
         plt.ylabel("Error loss")
         plt.show()
+
+        # Calculate confusion matrix
         ground_truth_values = inverse_encoding(self.y_test)
         estimated_target_values = inverse_encoding_no_categories(self.predictions, self.categories)
         cm = confusion_matrix(ground_truth_values, estimated_target_values)
-        cr = classification_report(ground_truth_values, estimated_target_values)
-        print(cm)
-        print()
-        print(cr)
+        # Convert numpy array to pandas DataFrame
+        cm = pd.DataFrame(data=cm, index=[i for i in self.categories], columns=[i for i in self.categories])
+
+        # Display confusion matrix as a heat map.
+        sn.heatmap(cm, annot=True, annot_kws={"size": 16}, cmap="YlGnBu")
+        plt.show()
+
+        if config.debug:
+            # Generate classification report and print confusion matrix and report to command line.
+            cr = classification_report(ground_truth_values, estimated_target_values)
+            print(cm)
+            print()
+            print(cr)
 
     def save_trained_nn(self):
         joblib.dump(self.mlp, "../neural_networks/{}.joblib".format(self.name))
