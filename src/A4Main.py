@@ -1,10 +1,50 @@
+import argparse
+
+import src.config as config
 from src.data import Data
 from src.multi_layer_perceptron import MultiLayerPerceptron
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--csv",
+                        required=True,
+                        help="The CSV data used to train and test the neural network. Choose from the data available "
+                             "in the data directory"
+                        )
+    parser.add_argument("-d", "--debug",
+                        action="store_true",
+                        help="Include this flag additional print statements and data for debugging purposes.")
+    args = parser.parse_args()
+    config.csv_file = args.csv
+    config.debug = args.debug
 
-    mlp = MultiLayerPerceptron(
+    data = None
+    if config.csv_file == "tickets":
+        data = Data(config.csv_file)
+    elif config.csv_file == "AND_gate":
+        data = Data("AND_gate")
+    elif config.csv_file == "OR_gate":
+        data = Data("OR_gate")
+    else:
+        print("CSV file {} could not be found, please check spelling.")
+        exit(1)
+
+    encode_data(data)
+    mlp = create_multi_layer_perceptron(data)
+    use_multi_layer_perceptron(mlp)
+
+
+def encode_data(data):
+    data.encode_input_data()
+    data.encode_target_data()
+
+
+def create_multi_layer_perceptron(data):
+    return MultiLayerPerceptron(
+        name=config.csv_file,
+        input_data=data.input_data_encoded,
+        target_data=data.target_data_encoded,
         hidden_layers_size=(7,),  # Length = n_layers - 2. We only need 1 (n_units,)
         solver='sgd',  # Stochastic Gradient Descent
         activation_function='logistic',  # Sigmoid activation function
@@ -17,20 +57,10 @@ def main():
         verbose=False,  # Print iterations at each step
     )
 
-    name = "tickets"
-    data = Data(name)
-    # data = Data("AND_gate")
-    # data = Data("OR_gate")
-    data.encode_input_data()
-    data.encode_target_data()
 
-    # Save encoded data in MultiLayerPerceptron object.
-    mlp.name = name
-    mlp.input_data = data.input_data_encoded
-    mlp.target_data = data.target_data_encoded
+def use_multi_layer_perceptron(mlp):
     mlp.split_data()
     mlp.train()
-
     mlp.show_predictions()
     mlp.show_results()
     mlp.save_trained_nn()

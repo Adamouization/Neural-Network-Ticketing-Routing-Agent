@@ -10,11 +10,12 @@ from src.data import inverse_encoding, inverse_encoding_no_categories
 
 class MultiLayerPerceptron:
 
-    def __init__(self, hidden_layers_size, solver, activation_function, learning_rate_init,
-                 learning_rate, momentum, optimisation_tolerance, num_iterations_no_change, max_iterations, verbose):
-        self.name = str()
-        self.input_data = list()
-        self.target_data = None
+    def __init__(self, name, input_data, target_data, hidden_layers_size, solver, activation_function,
+                 learning_rate_init, learning_rate, momentum, optimisation_tolerance, num_iterations_no_change,
+                 max_iterations, verbose):
+        self.name = name
+        self.input_data = input_data
+        self.target_data = target_data
         self.X_train, self.X_test, self.y_train, self.y_test = (int(),) * 4
         self.categories = list()
         self.predictions = None
