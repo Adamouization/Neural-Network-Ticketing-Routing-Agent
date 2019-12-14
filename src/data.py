@@ -1,6 +1,4 @@
-import numpy as np
 import pandas as pd
-from sklearn import preprocessing
 
 
 class Data:
@@ -15,30 +13,38 @@ class Data:
         """
         # Get data.
         self.data_directory = "../data/"
-        headers = self.parse_csv_headers(csv_file_name)
-        raw_data = self.read_csv_file(csv_file_name, headers)
+        self.headers = self._parse_csv_headers(csv_file_name)
+        raw_data = self._read_csv_file(csv_file_name)
 
         # Separate input data and target data.
-        self.input_data = raw_data.iloc[:, 0:raw_data.columns.size - 1]  # Data from all columns except last one.
-        self.target_data = raw_data.iloc[:, -1]  # Data from last column
+        self.input_data = None
+        self.input_data_encoded = list()
+        self.target_data = None
         self.target_data_encoded = list()
+        self._separate_input_target_data(raw_data)
 
-        # Data pre-processing encoders
-        self.label_encoder = preprocessing.LabelEncoder()
-
-    def parse_csv_headers(self, csv_file_name):
+    def _parse_csv_headers(self, csv_file_name):
         file = pd.read_csv("{}{}.csv".format(self.data_directory, csv_file_name))
         return list(file.head(0))
 
-    def read_csv_file(self, csv_file_name, headers):
+    def _read_csv_file(self, csv_file_name):
         return pd.read_csv(
             "{}{}.csv".format(self.data_directory, csv_file_name),
-            names=headers,
+            names=self.headers,
             skiprows=[0]
         )
 
+    def _separate_input_target_data(self, raw_data):
+        self.input_data = raw_data.iloc[:, 0:raw_data.columns.size - 1]  # Data from all columns except last one.
+        self.target_data = raw_data.iloc[:, -1]  # Data from last column
+
     def encode_input_data(self):
+        """
+        Encode input data with 0s or 1s for it to be readable by the MLPClassifier.
+        :return: None
+        """
         encoded_value = int()
+        self.input_data_encoded = self.input_data.copy(deep=False)
         for index, row in self.input_data.iterrows():
             for i, v in row.iteritems():
                 if v not in [0, 1]:
@@ -49,26 +55,11 @@ class Data:
                     else:
                         print("Error while encoding input data")
                         exit(1)
-                    self.input_data.at[index, i] = encoded_value
+                    self.input_data_encoded.at[index, i] = encoded_value
 
     def encode_target_data(self):
-        integer_encoded = self._integer_encode()
-        binary_encoded = self._binary_encode(integer_encoded)
-        one_hot_encoded = self._one_hot_encode(binary_encoded)
-        self.target_data_encoded = one_hot_encoded
-
-    def _integer_encode(self):
-        return self.label_encoder.fit_transform(self.target_data)
-
-    @staticmethod
-    def _binary_encode(integer_encoded):
-        return integer_encoded.reshape(len(integer_encoded), 1)
-
-    @staticmethod
-    def _one_hot_encode(binary_encode):
-        one_hot_encoder = preprocessing.OneHotEncoder(sparse=False)
-        onehot_encoded = one_hot_encoder.fit_transform(binary_encode)
-        return onehot_encoded
+        column = self.headers[-1]
+        self.target_data_encoded = pd.get_dummies(self.target_data, columns=column)
 
     def print_input_data(self):
         print("Input data:")
@@ -84,7 +75,17 @@ class Data:
 
 
 def inverse_encoding(onehot_encoded):
-    label_encoder = preprocessing.LabelEncoder()
-    # Invert first example
-    return label_encoder.inverse_transform([np.argmax(onehot_encoded[0, :])])
-    # print("Inverted encoding: {}".format(inverted))
+    """
+    Convert from one-hot encoding back to categorical string value.
+    :param onehot_encoded: The one-hot encoded data to convert back.
+    :return: The decoded data.
+    """
+    onehot_encoded = pd.DataFrame(onehot_encoded)
+    return onehot_encoded.idxmax(axis=1)
+
+
+def inverse_encoding_no_categories(onehot_encoded, categories):
+    newlist = pd.Series()
+    for i, p in enumerate(inverse_encoding(onehot_encoded)):
+        newlist.at[i] = categories[p]
+    return newlist

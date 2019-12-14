@@ -5,7 +5,6 @@ from src.multi_layer_perceptron import MultiLayerPerceptron
 def main():
 
     mlp = MultiLayerPerceptron(
-        name="AND gate",
         hidden_layers_size=(7,),  # Length = n_layers - 2. We only need 1 (n_units,)
         solver='sgd',  # Stochastic Gradient Descent
         activation_function='logistic',  # Sigmoid activation function
@@ -18,19 +17,21 @@ def main():
         verbose=False,  # Print iterations at each step
     )
 
-    data = Data("tickets")
+    name = "tickets"
+    data = Data(name)
     # data = Data("AND_gate")
     # data = Data("OR_gate")
     data.encode_input_data()
     data.encode_target_data()
 
     # Save encoded data in MultiLayerPerceptron object.
-    mlp.input_data = data.input_data
+    mlp.name = name
+    mlp.input_data = data.input_data_encoded
     mlp.target_data = data.target_data_encoded
     mlp.split_data()
     mlp.train()
 
-    mlp.make_predictions()
+    mlp.show_predictions()
     mlp.show_results()
     mlp.save_trained_nn()
 
