@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-class Data:
+class DataProcessor:
     """
     Data processor, which reads, splits and encodes data to be used by SciKit's MLPClassifier.
     """

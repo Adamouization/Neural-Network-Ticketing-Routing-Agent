@@ -1,7 +1,7 @@
 import argparse
 
 import src.config as config
-from src.data_processor import Data
+from src.data_processor import DataProcessor
 from src.grid_search_algorithm import GridSearch
 from src.multi_layer_perceptron import MultiLayerPerceptron
 
@@ -19,11 +19,11 @@ def main():
         # Retrieve data from CSV file and encode it.
         data = None
         if config.csv_file == "tickets":
-            data = Data(config.csv_file)
+            data = DataProcessor(config.csv_file)
         elif config.csv_file == "AND_gate":
-            data = Data("AND_gate")
+            data = DataProcessor("AND_gate")
         elif config.csv_file == "OR_gate":
-            data = Data("OR_gate")
+            data = DataProcessor("OR_gate")
         else:
             print("CSV file {} could not be found, please check spelling.")
             exit(1)
