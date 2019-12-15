@@ -20,11 +20,17 @@ class MultiLayerPerceptron:
     the neural network, test it by making predictions and plotting evaluation results.
     """
 
-    def __init__(self, name, input_data, target_data, hidden_layers_size, solver, activation_function,
-                 learning_rate_init, momentum, optimisation_tolerance, num_iterations_no_change,
-                 max_iterations, verbose):
+    def __init__(self, name, input_data, target_data, hidden_layers_size=(15,), solver="adam",
+                 activation_function="logistic", learning_rate_init=0.6, momentum=0.9, optimisation_tolerance=0.0001,
+                 num_iterations_no_change=1000, max_iterations=10000, verbose=config.debug):
         """
-        Initialise variables and create a new neural network using SciKit's MLPClassifier class.
+        Initialise variables and create a new neural network using SciKit's MLPClassifier class. Default neural network
+        hyperparameters are from the optimal solution generate from the Grid Search algorithm. By default, the network
+        has a single hidden layer with 15 hidden units, uses a Stochastic Gradient Descent Optimiser as a solver and a
+        logistic sigmoid activation function. The learning rate is at 0.6 and the momentum at 0.9. Stopping conditions
+        include an optimisation tolerance of 0.0001 after 1000 iterations with no changes and a maximum number of
+        iterations of 10000.
+
         :param name: The name of the neural network (based on the CSV file).
         :param input_data: The input data.
         :param target_data: The target data.
