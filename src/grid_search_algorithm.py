@@ -1,4 +1,5 @@
 import pandas as pd
+from pyspin.spin import Box1, make_spin
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 
@@ -14,9 +15,17 @@ grid_search_params = {
 }
 
 
+def _number_unique_parameters_combination():
+    combinations = 1
+    for key in grid_search_params:
+        combinations = combinations * len(grid_search_params[key])
+    return combinations
+
+
 class GridSearch:
 
     def __init__(self, input_data, target_data):
+        _number_unique_parameters_combination()
         self.grid_search = GridSearchCV(estimator=MLPClassifier(),
                                         param_grid=grid_search_params,
                                         scoring='accuracy',
@@ -32,7 +41,11 @@ class GridSearch:
                                                                                 target_data,
                                                                                 test_size=0.20)
 
+    @make_spin(
+        Box1, "Running grid search algorithm on Multi-Layer Perceptron with {} unique combinations...".format(
+            _number_unique_parameters_combination()))
     def train(self):
+        print()
         self.grid_search.fit(self.X_train, self.y_train)
 
     def print_optimal_parameters(self):

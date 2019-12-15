@@ -13,11 +13,16 @@ def main():
                         help="The CSV data used to train and test the neural network. Choose from the data available "
                              "in the data directory"
                         )
+    parser.add_argument("-g", "--gridsearch",
+                        action="store_true",
+                        help="Include this flag to run the grid search algorithm to determine the optimal "
+                             "hyperparameters for the neural network.")
     parser.add_argument("-d", "--debug",
                         action="store_true",
                         help="Include this flag additional print statements and data for debugging purposes.")
     args = parser.parse_args()
     config.csv_file = args.csv
+    config.is_grid_search = args.gridsearch
     config.debug = args.debug
 
     data = None
@@ -33,8 +38,10 @@ def main():
 
     encode_data(data)
     mlp = create_multi_layer_perceptron(data)
-    use_multi_layer_perceptron(mlp)
-    # GridSearch(data.input_data_encoded, data.target_data_encoded)
+    if config.is_grid_search:
+        GridSearch(data.input_data_encoded, data.target_data_encoded)
+    else:
+        use_multi_layer_perceptron(mlp)
 
 
 def encode_data(data):
