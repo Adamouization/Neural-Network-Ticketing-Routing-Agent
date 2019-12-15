@@ -7,7 +7,48 @@ from src.multi_layer_perceptron import MultiLayerPerceptron
 
 
 def main():
+    parse_command_line_arguments()
+
+    # Run the Basic agent to train the neural network given the data or to determine its optimal parameters.
+    if config.agent == "Bas":
+        data = None
+        if config.csv_file == "tickets":
+            data = Data(config.csv_file)
+        elif config.csv_file == "AND_gate":
+            data = Data("AND_gate")
+        elif config.csv_file == "OR_gate":
+            data = Data("OR_gate")
+        else:
+            print("CSV file {} could not be found, please check spelling.")
+            exit(1)
+
+        encode_data(data)
+        if config.is_grid_search:
+            GridSearch(data.input_data_encoded, data.target_data_encoded)
+        else:
+            mlp = create_multi_layer_perceptron(data)
+            use_multi_layer_perceptron(mlp)
+
+    # Run the Intermediate agent to interact with the user through a text-based interface and make early predictions.
+    elif config.agent == "Int":
+        print("Intermediate Agent")
+
+    # Run the Advanced agent.
+    elif config.agent == "Adv":
+        print("Advanced Agent")
+
+    # Error in agent specified.
+    else:
+        print("Wrong agent specified. Please use --agent 'Bas', 'Int', or 'Adv'")
+        exit(1)
+
+
+def parse_command_line_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--agent",
+                        required=True,
+                        help="The type of agent to run (Basic 'Bas', Intermediate 'Int' or Advanced 'Adv')."
+                        )
     parser.add_argument("-c", "--csv",
                         required=True,
                         help="The CSV data used to train and test the neural network. Choose from the data available "
@@ -21,27 +62,10 @@ def main():
                         action="store_true",
                         help="Include this flag additional print statements and data for debugging purposes.")
     args = parser.parse_args()
+    config.agent = args.agent
     config.csv_file = args.csv
     config.is_grid_search = args.gridsearch
     config.debug = args.debug
-
-    data = None
-    if config.csv_file == "tickets":
-        data = Data(config.csv_file)
-    elif config.csv_file == "AND_gate":
-        data = Data("AND_gate")
-    elif config.csv_file == "OR_gate":
-        data = Data("OR_gate")
-    else:
-        print("CSV file {} could not be found, please check spelling.")
-        exit(1)
-
-    encode_data(data)
-    if config.is_grid_search:
-        GridSearch(data.input_data_encoded, data.target_data_encoded)
-    else:
-        mlp = create_multi_layer_perceptron(data)
-        use_multi_layer_perceptron(mlp)
 
 
 def encode_data(data):
