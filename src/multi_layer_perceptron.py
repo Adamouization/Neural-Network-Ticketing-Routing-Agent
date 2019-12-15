@@ -17,7 +17,7 @@ fontsize = 12
 class MultiLayerPerceptron:
 
     def __init__(self, name, input_data, target_data, hidden_layers_size, solver, activation_function,
-                 learning_rate_init, learning_rate, momentum, optimisation_tolerance, num_iterations_no_change,
+                 learning_rate_init, momentum, optimisation_tolerance, num_iterations_no_change,
                  max_iterations, verbose):
         self.name = name
         self.input_data = input_data
@@ -30,7 +30,6 @@ class MultiLayerPerceptron:
             solver=solver,
             activation=activation_function,
             learning_rate_init=learning_rate_init,
-            learning_rate=learning_rate,
             momentum=momentum,
             tol=optimisation_tolerance,
             n_iter_no_change=num_iterations_no_change,
