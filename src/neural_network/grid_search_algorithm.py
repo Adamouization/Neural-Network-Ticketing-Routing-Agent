@@ -13,8 +13,8 @@ grid_search_params = {
     'learning_rate_init': [0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
     'momentum': [0.1, 0.3, 0.5, 0.7, 0.9],
     'tol': [1, 0.1, 0.01, 0.001, 0.0001],
-    'n_iter_no_change': [100],  # Param not being tested.
-    'max_iter': [10000]         # Param not being tested.
+    'n_iter_no_change': [100, 1000],
+    'max_iter': [10000]  # Param not being tested.
 }
 
 
