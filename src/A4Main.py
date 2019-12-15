@@ -37,10 +37,10 @@ def main():
         exit(1)
 
     encode_data(data)
-    mlp = create_multi_layer_perceptron(data)
     if config.is_grid_search:
         GridSearch(data.input_data_encoded, data.target_data_encoded)
     else:
+        mlp = create_multi_layer_perceptron(data)
         use_multi_layer_perceptron(mlp)
 
 
@@ -54,15 +54,15 @@ def create_multi_layer_perceptron(data):
         name=config.csv_file,
         input_data=data.input_data_encoded,
         target_data=data.target_data_encoded,
-        hidden_layers_size=(7,),         # Single hidden layer with 7 hidden units.
-        solver='sgd',                    # Stochastic Gradient Descent.
-        activation_function='logistic',  # Sigmoid activation function.
-        learning_rate_init=0.7,          # Learning rate.
-        momentum=0.5,                    # Momentum.
-        optimisation_tolerance=0.0001,   # Stop condition: score not improving by tol for num_iterations_no_change.
-        num_iterations_no_change=500,    # Stop condition: number of iterations with no change.
-        max_iterations=10000,            # Stop condition: maximum number of iterations..
-        verbose=config.debug,            # Print iterations at each step.
+        hidden_layers_size=(9,),        # Single hidden layer with 9 hidden units.
+        solver='adam',                  # Stochastic Gradient Descent Optimiser.
+        activation_function='tanh',     # Hyperbolic tan activation function.
+        learning_rate_init=0.3,         # Learning rate.
+        momentum=0.7,                   # Momentum.
+        optimisation_tolerance=0.0001,  # Stop condition: score not improving by tol for num_iterations_no_change.
+        num_iterations_no_change=100,   # Stop condition: number of iterations with no change.
+        max_iterations=5000,            # Stop condition: maximum number of iterations..
+        verbose=config.debug,           # Print iterations at each step.
     )
 
 
