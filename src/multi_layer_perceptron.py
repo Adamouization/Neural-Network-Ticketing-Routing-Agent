@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 
 import src.config as config
-from src.data import inverse_encoding, inverse_encoding_no_categories
+from src.data_processor import inverse_encoding, inverse_encoding_no_categories
 
 # Global variables
 fontsize = 12

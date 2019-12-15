@@ -1,7 +1,7 @@
 import argparse
 
 import src.config as config
-from src.data import Data
+from src.data_processor import Data
 from src.grid_search_algorithm import GridSearch
 from src.multi_layer_perceptron import MultiLayerPerceptron
 
