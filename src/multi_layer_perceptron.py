@@ -40,7 +40,8 @@ class MultiLayerPerceptron:
     def split_data(self):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.input_data,
                                                                                 self.target_data,
-                                                                                test_size=0.20)
+                                                                                test_size=0.20,
+                                                                                stratify=self.target_data)
         self.categories = list(self.y_test.columns)
 
     def train(self):
