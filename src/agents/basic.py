@@ -1,7 +1,7 @@
-from ..data_processor import DataProcessor
-from ..grid_search_algorithm import GridSearch
 import src.config as config
-from ..multi_layer_perceptron import MultiLayerPerceptron
+from src.neural_network.data_processor import DataProcessor
+from src.neural_network.grid_search_algorithm import GridSearch
+from src.neural_network.multi_layer_perceptron import MultiLayerPerceptron
 
 
 def run_basic_agent():
