@@ -7,14 +7,14 @@ from sklearn.neural_network import MLPClassifier
 
 # Grid Search parameters to test (single parameters used to overwrite default MLPClassifier values, not tested).
 grid_search_params = {
-    'hidden_layer_sizes': [(3,), (5,), (7,), (9,), (20,)],
+    'hidden_layer_sizes': [(3,), (5,), (7,), (9,), (15,), (25,)],
     'solver': ["sgd", "adam"],
     'activation': ["logistic", "relu", "tanh"],
-    'learning_rate_init': [0.1, 0.3, 0.7, 0.9],
-    'momentum': [0.1, 0.4, 0.7],
-    'tol': [0.1, 0.01, 0.001, 0.0001],
-    'n_iter_no_change': [100],
-    'max_iter': [10000]
+    'learning_rate_init': [0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
+    'momentum': [0.1, 0.3, 0.5, 0.7, 0.9],
+    'tol': [1, 0.1, 0.01, 0.001, 0.0001],
+    'n_iter_no_change': [100],  # Param not being tested.
+    'max_iter': [10000]         # Param not being tested.
 }
 
 
@@ -57,7 +57,8 @@ class GridSearch:
         """
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.input_data,
                                                                                 self.target_data,
-                                                                                test_size=0.20)
+                                                                                test_size=0.20,
+                                                                                stratify=self.target_data)
 
     @make_spin(
         Box1, "Running grid search algorithm on Multi-Layer Perceptron with {} unique combinations...".format(
@@ -83,8 +84,8 @@ class GridSearch:
         Prints the optimal hyperparameters found and the testing score achieved with those parameters.
         :return: None.
         """
-        print(self.grid_search.best_params_)
-        print(self.grid_search.best_score_)
+        print("Optimal hyperparameters found: ".format(self.grid_search.best_params_))
+        print("\nAccuracy with hyperparameters above: ".format(self.grid_search.best_score_))
 
     def save_grid_search(self):
         """
