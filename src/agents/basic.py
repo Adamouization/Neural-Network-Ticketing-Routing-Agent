@@ -53,16 +53,17 @@ def create_multi_layer_perceptron(data):
         name=config.csv_file,
         input_data=data.input_data_encoded,
         target_data=data.target_data_encoded,
-        hidden_layers_size=(15,),  # Single hidden layer with 9 hidden units.
-        solver='adam',  # Stochastic Gradient Descent Optimiser.
-        activation_function='logistic',  # Hyperbolic tan activation function.
-        learning_rate_init=0.6,  # Learning rate.
-        momentum=0.9,  # Momentum.
-        optimisation_tolerance=0.0001,  # Stop condition: score not improving by tol for num_iterations_no_change.
-        num_iterations_no_change=1000,  # Stop condition: number of iterations with no change.
-        max_iterations=10000,  # Stop condition: maximum number of iterations.
-        verbose=config.debug,  # Print iterations at each step.
+        hidden_layers_size=(15,),        # Single hidden layer with 15 hidden units.
+        solver='adam',                   # Stochastic Gradient Descent Optimiser.
+        activation_function='logistic',  # Logistic sigmoid activation function.
+        learning_rate_init=0.6,          # Learning rate.
+        momentum=0.9,                    # Momentum.
+        optimisation_tolerance=0.0001,   # Stop condition: score not improving by tol for num_iterations_no_change.
+        num_iterations_no_change=1000,   # Stop condition: number of iterations with no change.
+        max_iterations=10000,            # Stop condition: maximum number of iterations.
+        verbose=config.debug,            # Print iterations at each step if True.
     )
+
 
 def run_multi_layer_perceptron(mlp):
     """
