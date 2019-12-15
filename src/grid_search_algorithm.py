@@ -35,6 +35,7 @@ class GridSearch:
         self.split_data(input_data, target_data)
         self.train()
         self.print_optimal_parameters()
+        self.save_grid_search()
 
     def split_data(self, input_data, target_data):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(input_data,
