@@ -6,22 +6,23 @@ class DataProcessor:
     Data processor, which reads, splits and encodes data to be used by SciKit's MLPClassifier.
     """
 
-    def __init__(self, csv_file_name):
+    def __init__(self, csv_file_name=None):
         """
         Initialise variables and the data.
         :param csv_file_name: The name of CSV file containing the input and target data.
         """
-        # Get the data from the CSV file.
-        self.data_directory = "../data/"
-        self.headers = self._parse_csv_headers(csv_file_name)
-        raw_data = self._read_csv_file(csv_file_name)
-
-        # Separate input data from target data.
         self.input_data = None
         self.input_data_encoded = list()
         self.target_data = None
         self.target_data_encoded = list()
-        self._separate_input_target_data(raw_data)
+
+        # Get the data from the CSV file.
+        if csv_file_name is not None:
+            self.data_directory = "../data/"
+            self.headers = self._parse_csv_headers(csv_file_name)
+            raw_data = self._read_csv_file(csv_file_name)
+            # Separate input data from target data.
+            self._separate_input_target_data(raw_data)
 
     def _parse_csv_headers(self, csv_file_name):
         """
