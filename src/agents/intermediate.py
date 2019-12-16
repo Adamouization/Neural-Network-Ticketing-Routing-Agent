@@ -1,4 +1,5 @@
 import joblib
+import sys
 
 import numpy as np
 import pandas as pd
@@ -111,7 +112,7 @@ def question_yes_no(question):
     prompt = "[Yes/No]: "
 
     # Ask user a question and record his answer.
-    print("{} {}".format(question, prompt))
+    sys.stdout.write("{} {}".format(question, prompt))  # Use sys.stdout.write to keep input on same line as question.
     user_answer = input().lower()
 
     # Map user's answer to set of valid answers.
