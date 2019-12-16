@@ -9,7 +9,6 @@ from src.neural_network.data_processor import DataProcessor, inverse_encoding_no
 from src.neural_network.multi_layer_perceptron import MultiLayerPerceptron
 
 # General variables.
-questions = ["Request", "Incident", "WebServices", "Login", "Wireless", "Printing", "IdCards", "Staff", "Students"]
 categories = ["Credentials", "Datawarehouse", "Emergencies", "Equipment", "Networking"]
 early_prediction_steps = [3, 5, 7]  # Make early predictions at these questions.
 
@@ -26,7 +25,7 @@ def run_intermediate_agent():
 
         # Ask questions and store answers.
         print("\nNew ticket\nPlease answer the following questions to log a new ticket:")
-        for i, q in enumerate(questions):
+        for i, q in enumerate(data.tags):
 
             # Make early prediction.
             if i in early_prediction_steps:
@@ -61,9 +60,8 @@ def run_intermediate_agent():
 
 
 def fill_out_missing_ticket_data(data, partial_ticket):
-    most_common_values = data.input_data.mode()
-    most_common_values = most_common_values.to_dict()
-    for q in questions:
+    most_common_values = data.input_data.mode().to_dict()
+    for q in data.tags:
         if q not in partial_ticket:
             partial_ticket[q] = most_common_values[q][0]
     return partial_ticket

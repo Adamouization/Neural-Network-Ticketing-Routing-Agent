@@ -20,6 +20,7 @@ class DataProcessor:
         if csv_file_name is not None:
             self.data_directory = "../data/"
             self.headers = self._parse_csv_headers(csv_file_name)
+            self.tags = self.headers[:-1]
             raw_data = self._read_csv_file(csv_file_name)
             # Separate input data from target data.
             self._separate_input_target_data(raw_data)
