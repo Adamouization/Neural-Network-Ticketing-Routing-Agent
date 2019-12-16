@@ -5,6 +5,8 @@ from pyspin.spin import Box1, make_spin
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 
+from src.helpers import print_runtime
+
 # Grid Search parameters to test (single parameters used to overwrite default MLPClassifier values, not tested).
 grid_search_params = {
     'hidden_layer_sizes': [(3,), (5,), (7,), (9,), (15,), (25,)],
@@ -69,15 +71,12 @@ class GridSearch:
         Measures runtime as well.
         :return: None.
         """
-        # Start measuring runtime.
-        start_time = time.time()
+        start_time = time.time()  # Start measuring runtime.
 
         # Run Grid Search using all possible combinations in grid_search_params.
         self.grid_search.fit(self.X_train, self.y_train)
 
-        # Record and print runtime.
-        runtime = round(time.time() - start_time, 2)
-        print("\n--- Grid Search Runtime: {} seconds ---".format(runtime))
+        print_runtime("Grid Search", round(time.time() - start_time, 2))  # Record and print runtime.
 
     def print_optimal_parameters(self):
         """

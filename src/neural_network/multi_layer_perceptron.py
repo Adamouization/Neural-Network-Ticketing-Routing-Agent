@@ -111,7 +111,11 @@ class MultiLayerPerceptron:
         ground_truth_values = inverse_encoding(self.y_test)
         estimated_target_values = inverse_encoding_no_categories(self.predictions, self.categories)
         cm = confusion_matrix(ground_truth_values, estimated_target_values)
-        # Convert numpy array to pandas DataFrame
+
+        accuracy = _calculate_accuracy(cm)
+        print("Accuracy: {}%".format(accuracy))
+
+        # Convert confusion matrix from numpy array to pandas DataFrame
         cm = pd.DataFrame(data=cm, index=[i for i in self.categories], columns=[i for i in self.categories])
 
         # Display confusion matrix as a heat map.
@@ -133,3 +137,15 @@ class MultiLayerPerceptron:
         :return: None
         """
         joblib.dump(self.mlp, "../neural_networks/{}.joblib".format(self.name))
+
+
+def _calculate_accuracy(cm):
+    """
+    Calculates the accuracy of the testing using the results from the confusion matrix (counting the number of true
+    positives)
+    :param cm: The confusion matrix.
+    :return: The accuracy in percentage form.
+    """
+    diagonal_sum = cm.trace()
+    sum_of_all_elements = cm.sum()
+    return (diagonal_sum / sum_of_all_elements) * 100

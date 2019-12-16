@@ -1,4 +1,7 @@
+import time
+
 import src.config as config
+from src.helpers import print_runtime
 from src.neural_network.data_processor import DataProcessor
 from src.neural_network.grid_search_algorithm import GridSearch
 from src.neural_network.multi_layer_perceptron import MultiLayerPerceptron
@@ -29,7 +32,9 @@ def run_basic_agent():
     # Train and test the neural network based on the chosen data.
     else:
         mlp = create_multi_layer_perceptron(data)
+        start_time = time.time()  # Start measuring runtime.
         run_multi_layer_perceptron(mlp)
+        print_runtime("Training", round(time.time() - start_time, 2))  # Record and print runtime.
 
 
 def encode_data(data):
