@@ -15,16 +15,16 @@ categories = ["Credentials", "Datawarehouse", "Emergencies", "Equipment", "Netwo
 def run_intermediate_agent():
     # Initialise agent.
     _print_welcome_message()
-    new_ticket = dict()
 
     while True:
         # Ask questions and store answers.
-        print("New ticket\nPlease answer the following questions to log a new ticket:")
+        print("\nNew ticket\nPlease answer the following questions to log a new ticket:")
+        new_ticket = dict()
         for q in questions:
             reply = question_yes_no(q)
+            new_ticket[q] = reply
             if reply == "Exit":
                 _exit_cli()
-            new_ticket[q] = reply
 
         # Convert new ticket to DataFrame and one-hot encode it for the MultiLayerPerceptron to make a prediction.
         new_ticket = pd.DataFrame(np.array(new_ticket.values()).T.tolist(),
@@ -53,11 +53,14 @@ def run_intermediate_agent():
         # Make a prediction and print it to the command line.
         prediction = mlp.predict(data.input_data_encoded)
         prediction_decoded = inverse_encoding_no_categories(prediction, categories).at[0]
+        probability_predictions = pd.DataFrame(mlp.predict_proba(data.input_data_encoded), columns=categories)
         print("\nYour ticket is being directed to: \033[1m{}\033[0m\n".format(prediction_decoded))
 
-        # probability_predictions = pd.DataFrame(mlp.predict_proba(data.input_data_encoded), columns=categories)
-        # max = probability_predictions.max().iloc[0]
-        # print(probability_predictions)
+        if config.debug:
+            print("Prediction = {}\n{}\n".format(prediction, probability_predictions))
+
+        if question_yes_no("Do you want to submit another ticket?") == "No":
+            _exit_cli()
 
 
 def question_yes_no(question):
@@ -86,7 +89,6 @@ def _print_welcome_message():
     print()
     print("You can quit at any time by typing 'exit' or 'quit'.")
     print("Note: default answer is: 'Yes'.")
-    print()
 
 
 def _exit_cli():
