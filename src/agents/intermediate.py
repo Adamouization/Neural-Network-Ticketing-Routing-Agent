@@ -1,5 +1,4 @@
 import joblib
-import sys
 
 import numpy as np
 import pandas as pd
@@ -106,15 +105,14 @@ def make_prediction(data, new_ticket, is_early_prediction=False):
 
 def question_yes_no(question):
     # Valid set of answers (default is "Yes").
-    valid_answers = {"yes": "Yes", "y": "Yes", "YES": "Yes", "Yes": "Yes", "yy": "Yes", "": "Yes",
-                     "no": "No", "n": "No", "NO": "No", "No": "No", "nn": "No",
-                     "Quit": "Exit", "QUIT": "Exit", "quit": "Exit", "q": "Exit", "Exit": "Exit", "EXIT": "Exit",
-                     "exit": "Exit", "e": "Exit"}
+    valid_answers = {"yes": "Yes", "y": "Yes", "yy": "Yes", "": "Yes",
+                     "no": "No", "n": "No", "nn": "No",
+                     "quit": "Exit", "q": "Exit", "exit": "Exit", "e": "Exit"}
     prompt = "[Yes/No]: "
 
     # Ask user a question and record his answer.
-    sys.stdout.write("{} {}".format(question, prompt))
-    user_answer = input()
+    print("{} {}".format(question, prompt))
+    user_answer = input().lower()
 
     # Map user's answer to set of valid answers.
     try:
