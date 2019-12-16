@@ -25,7 +25,7 @@ def run_intermediate_agent():
 
         # Ask questions and store answers.
         print("\nNew ticket\nPlease answer the following questions to log a new ticket:")
-        for i, q in enumerate(data.tags):
+        for i, tag in enumerate(data.tags):
 
             # Make early prediction.
             if i in early_prediction_steps:
@@ -43,8 +43,8 @@ def run_intermediate_agent():
                     early_prediction_made = False
 
             # Ask question.
-            reply = question_yes_no(q)
-            new_ticket[q] = reply
+            reply = question_yes_no(tag)
+            new_ticket[tag] = reply
 
             # Exit ticket logger system when user wants to stop.
             if reply == "Exit":
@@ -61,9 +61,9 @@ def run_intermediate_agent():
 
 def fill_out_missing_ticket_data(data, partial_ticket):
     most_common_values = data.input_data.mode().to_dict()
-    for q in data.tags:
-        if q not in partial_ticket:
-            partial_ticket[q] = most_common_values[q][0]
+    for tag in data.tags:
+        if tag not in partial_ticket:
+            partial_ticket[tag] = most_common_values[tag][0]
     return partial_ticket
 
 
