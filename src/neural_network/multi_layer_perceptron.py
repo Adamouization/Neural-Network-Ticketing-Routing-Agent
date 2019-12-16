@@ -1,5 +1,6 @@
 import joblib
 
+from matplotlib.offsetbox import AnchoredText
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sn
@@ -9,9 +10,6 @@ from sklearn.neural_network import MLPClassifier
 
 import src.config as config
 from .data_processor import inverse_encoding, inverse_encoding_no_categories
-
-# Global variables
-fontsize = 12
 
 
 class MultiLayerPerceptron:
@@ -101,10 +99,25 @@ class MultiLayerPerceptron:
         epochs, followed by the confusion matrix of the testing predictions plotted in a heatmap.
         :return: None
         """
+        fontsize = 12
+
         # Plot error loss curve.
-        plt.plot(self.mlp.loss_curve_)
+        fig, ax = plt.subplots()
+        ax.plot(self.mlp.loss_curve_)
         plt.xlabel("Epochs", fontsize=fontsize)
         plt.ylabel("Error loss", fontsize=fontsize)
+        anchored_text = AnchoredText(
+            "Epochs: {}\nError: {}".format(len(self.mlp.loss_curve_), round(self.mlp.loss_curve_[-1], 5)),
+            loc='upper right', prop=dict(size=8), frameon=True)
+        anchored_text.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+        ax.set_title(
+            "hidden_layer_sizes:{} solver:{} activation:{} learning_rate_init:{} momentum:{}".format(
+                self.mlp.hidden_layer_sizes, self.mlp.solver, self.mlp.activation, self.mlp.learning_rate_init,
+                self.mlp.momentum
+            ),
+            fontsize=8
+        )
+        ax.add_artist(anchored_text)
         plt.show()
 
         # Calculate confusion matrix
@@ -119,9 +132,11 @@ class MultiLayerPerceptron:
         cm = pd.DataFrame(data=cm, index=[i for i in self.categories], columns=[i for i in self.categories])
 
         # Display confusion matrix as a heat map.
+        fig, ax = plt.subplots()
         sn.heatmap(cm, cmap="YlGnBu", annot=True, annot_kws={"size": fontsize})
         plt.xlabel("Predictions", fontsize=fontsize)
         plt.ylabel("Ground truth values", fontsize=fontsize)
+        ax.set_title("Accuracy: {}%".format(accuracy), fontsize=fontsize)
         plt.show()
 
         if config.debug:
