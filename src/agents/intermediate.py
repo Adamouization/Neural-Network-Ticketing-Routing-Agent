@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 
+from .common import encode_data, run_multi_layer_perceptron
 import src.config as config
 from src.neural_network.data_processor import append_new_ticket_to_csv, DataProcessor, inverse_encoding_no_categories
 from src.neural_network.multi_layer_perceptron import MultiLayerPerceptron
@@ -16,9 +17,19 @@ early_prediction_steps = [3, 5, 7]  # Make early predictions at these questions.
 def run_intermediate_agent():
     # Initialise agent.
     _print_welcome_message()
-    data = DataProcessor(config.csv_file)
+    is_nn_retrained = False
 
     while True:
+        # Load the re-fitted neural network with the new tickets.
+        if is_nn_retrained:
+            updated_csv_file_name = get_updated_csv_file_name(config.csv_file)
+            data = DataProcessor(updated_csv_file_name)
+            mlp_trained = joblib.load("../neural_networks/{}.joblib".format(updated_csv_file_name))
+        # Load the previously trained neural network (from the basic agent).
+        else:
+            data = DataProcessor(config.csv_file)
+            mlp_trained = joblib.load("../neural_networks/{}.joblib".format(config.csv_file))
+
         # Variables to reset for each new ticket.
         new_ticket = dict()
         early_prediction_made = False
@@ -30,7 +41,7 @@ def run_intermediate_agent():
             # Make early prediction.
             if i in early_prediction_steps:
                 completed_ticket = fill_out_missing_ticket_data(data, new_ticket)
-                make_prediction(data, completed_ticket, is_early_prediction=True)
+                make_prediction(mlp_trained, data, completed_ticket, is_early_prediction=True)
 
                 # Early prediction satisfies user, stop asking questions.
                 if question_yes_no("Are you happy with this prediction") == "Yes":
@@ -52,7 +63,7 @@ def run_intermediate_agent():
 
         # Make a prediction based on a full ticket (user answered all 9 questions).
         if not early_prediction_made:
-            make_prediction(data, new_ticket)
+            make_prediction(mlp_trained, data, new_ticket)
 
         # Check if user is happy with the agent's choice of response team.
         if question_yes_no("Are you happy with the response team chosen") == "No":
@@ -61,11 +72,33 @@ def run_intermediate_agent():
                                                           .format(categories))
             final_ticket = new_ticket
             final_ticket["Response Team"] = desired_response_team
-            new_csv_file_name = "{}_{}".format(config.csv_file, "updated")
+            new_csv_file_name = get_updated_csv_file_name(config.csv_file)
             append_new_ticket_to_csv(new_csv_file_name, final_ticket)
 
+            # Retrain the mlp classifier.
+            updated_data = DataProcessor(new_csv_file_name)
+            encode_data(updated_data)
+            mlp = MultiLayerPerceptron(
+                name=new_csv_file_name,
+                input_data=updated_data.input_data_encoded,
+                target_data=updated_data.target_data_encoded,
+                hidden_layers_size=mlp_trained.hidden_layer_sizes,
+                solver=mlp_trained.solver,
+                activation_function=mlp_trained.activation,
+                learning_rate_init=mlp_trained.learning_rate_init,
+                momentum=mlp_trained.momentum,
+                optimisation_tolerance=mlp_trained.tol,
+                num_iterations_no_change=mlp_trained.n_iter_no_change,
+                max_iterations=mlp_trained.max_iter,
+            )
+
+            run_multi_layer_perceptron(mlp, is_refitted_nn=True)
+
+            print("Your change will be taken into consideration for future tickets.")
+            is_nn_retrained = True
+
         # Ask if user wants to submit another ticket.
-        if question_yes_no("Do you want to submit another ticket?") == "No":
+        if question_yes_no("\nDo you want to submit another ticket?") == "No":
             _exit_cli()
 
 
@@ -77,29 +110,12 @@ def fill_out_missing_ticket_data(data, partial_ticket):
     return partial_ticket
 
 
-def make_prediction(data, new_ticket, is_early_prediction=False):
+def make_prediction(mlp, data, new_ticket, is_early_prediction=False):
     # Convert new ticket to DataFrame and one-hot encode it for the MultiLayerPerceptron to make a prediction.
     new_ticket = pd.DataFrame(np.array(new_ticket.values()).T.tolist(),
                               index=np.array(new_ticket.keys()).T.tolist()).T
     data.input_data = new_ticket
     data.encode_input_data()
-
-    # Load the previously trained neural network (from the basic agent).
-    mlp = joblib.load("../neural_networks/{}.joblib".format(config.csv_file))
-
-    # mlp = MultiLayerPerceptron(
-    #     name=config.csv_file,
-    #     input_data=data.input_data_encoded,
-    #     target_data=None,
-    #     hidden_layers_size=mlp_temp.hidden_layer_sizes,
-    #     solver=mlp_temp.solver,
-    #     activation_function=mlp_temp.activation,
-    #     learning_rate_init=mlp_temp.learning_rate_init,
-    #     momentum=mlp_temp.momentum,
-    #     optimisation_tolerance=mlp_temp.tol,
-    #     num_iterations_no_change=mlp_temp.n_iter_no_change,
-    #     max_iterations=mlp_temp.max_iter,
-    # )
 
     # Make a prediction and print it to the command line.
     prediction = mlp.predict(data.input_data_encoded)
@@ -143,6 +159,10 @@ def question_desired_team(question):
             return user_answer
         else:
             print("The team you have chosen cannot be recognised.")
+
+
+def get_updated_csv_file_name(csv_file_name):
+    return "{}_updated".format(csv_file_name)
 
 
 def _print_welcome_message():

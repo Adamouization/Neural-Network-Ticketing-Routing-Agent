@@ -1,5 +1,6 @@
 import time
 
+from .common import encode_data, run_multi_layer_perceptron
 import src.config as config
 from src.helpers import print_runtime
 from src.neural_network.data_processor import DataProcessor
@@ -37,16 +38,6 @@ def run_basic_agent():
         print_runtime("Training", round(time.time() - start_time, 2))  # Record and print runtime.
 
 
-def encode_data(data):
-    """
-    Encode the input and target data to be used by the neural network.
-    :param data: The raw CSV data.
-    :return: None
-    """
-    data.encode_input_data()
-    data.encode_target_data()
-
-
 def create_multi_layer_perceptron(data):
     """
     Creates a new instance of the MultiLayerPerceptron class with optimal hyperparameters (which were determined in
@@ -59,19 +50,6 @@ def create_multi_layer_perceptron(data):
         input_data=data.input_data_encoded,
         target_data=data.target_data_encoded,
     )
-
-
-def run_multi_layer_perceptron(mlp):
-    """
-    Execution flow to train and test the neural network.
-    :param mlp: The neural network object.
-    :return: None
-    """
-    mlp.split_data()
-    mlp.train()
-    mlp.test()
-    mlp.show_results()
-    mlp.save_trained_nn()
 
 
 def run_grid_search(gs):
