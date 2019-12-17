@@ -1,7 +1,7 @@
 import argparse
 
-import src.config as config
-from src.agents import basic, intermediate, advanced
+import config as config
+from agents import basic, intermediate, advanced
 
 
 def main():

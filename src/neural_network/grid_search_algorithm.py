@@ -5,7 +5,7 @@ from pyspin.spin import Box1, make_spin
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 
-from src.helpers import print_runtime
+from helpers import print_runtime
 
 # Grid Search parameters to test (single parameters used to overwrite default MLPClassifier values, not tested).
 grid_search_params = {

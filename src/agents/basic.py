@@ -1,11 +1,11 @@
 import time
 
-from .common import encode_data, run_multi_layer_perceptron
-import src.config as config
-from src.helpers import print_runtime
-from src.neural_network.data_processor import DataProcessor
-from src.neural_network.grid_search_algorithm import GridSearch
-from src.neural_network.multi_layer_perceptron import MultiLayerPerceptron
+from agents.common import encode_data, run_multi_layer_perceptron
+import config as config
+from helpers import print_runtime
+from neural_network.data_processor import DataProcessor
+from neural_network.grid_search_algorithm import GridSearch
+from neural_network.multi_layer_perceptron import MultiLayerPerceptron
 
 
 def run_basic_agent():

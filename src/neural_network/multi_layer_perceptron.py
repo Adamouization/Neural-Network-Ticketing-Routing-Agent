@@ -8,8 +8,8 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 
-import src.config as config
-from .data_processor import inverse_encoding, inverse_encoding_no_categories
+import config as config
+from neural_network.data_processor import inverse_encoding, inverse_encoding_no_categories
 
 
 class MultiLayerPerceptron:

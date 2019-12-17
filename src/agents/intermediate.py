@@ -4,10 +4,10 @@ import sys
 import numpy as np
 import pandas as pd
 
-from .common import encode_data, run_multi_layer_perceptron
-import src.config as config
-from src.neural_network.data_processor import append_new_ticket_to_csv, DataProcessor, inverse_encoding_no_categories
-from src.neural_network.multi_layer_perceptron import MultiLayerPerceptron
+from agents.common import encode_data, run_multi_layer_perceptron
+import config as config
+from neural_network.data_processor import append_new_ticket_to_csv, DataProcessor, inverse_encoding_no_categories
+from neural_network.multi_layer_perceptron import MultiLayerPerceptron
 
 # General variables.
 categories = ["Credentials", "Datawarehouse", "Emergencies", "Equipment", "Networking"]
