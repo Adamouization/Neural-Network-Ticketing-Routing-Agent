@@ -125,7 +125,7 @@ class MultiLayerPerceptron:
         estimated_target_values = inverse_encoding_no_categories(self.predictions, self.categories)
         cm = confusion_matrix(ground_truth_values, estimated_target_values)
 
-        accuracy = _calculate_accuracy(cm)
+        accuracy = round(_calculate_accuracy(cm), 2)
         print("Accuracy: {}%".format(accuracy))
 
         # Convert confusion matrix from numpy array to pandas DataFrame
