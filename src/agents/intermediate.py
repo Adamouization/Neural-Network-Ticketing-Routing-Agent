@@ -6,6 +6,7 @@ import pandas as pd
 
 from agents.common import encode_data, run_multi_layer_perceptron
 import config as config
+from helpers import print_ascii_title
 from neural_network.data_processor import append_new_ticket_to_csv, DataProcessor, inverse_encoding_no_categories
 from neural_network.multi_layer_perceptron import MultiLayerPerceptron
 
@@ -15,6 +16,10 @@ early_prediction_steps = [3, 5, 7]  # Make early predictions at these questions.
 
 
 def run_intermediate_agent():
+    """
+    Runs the intermediate agent program.
+    :return: None
+    """
     # Initialise agent.
     _print_welcome_message()
     is_nn_retrained = False
@@ -102,15 +107,29 @@ def run_intermediate_agent():
             _exit_cli()
 
 
-def fill_out_missing_ticket_data(data, partial_ticket):
+def fill_out_missing_ticket_data(data, ticket):
+    """
+    Fills outs the rest of the ticket by using the mode (most recurring value in the origin CSV file).
+    :param data: The DataProcessor object containing the parsed/encoded CSV data.
+    :param ticket: The incomplete ticket containing a few answered tags from the user.
+    :return: The completed ticket.
+    """
     most_common_values = data.input_data.mode().to_dict()
     for tag in data.tags:
-        if tag not in partial_ticket:
-            partial_ticket[tag] = most_common_values[tag][0]
-    return partial_ticket
+        if tag not in ticket:
+            ticket[tag] = most_common_values[tag][0]
+    return ticket
 
 
 def make_prediction(mlp, data, new_ticket, is_early_prediction=False):
+    """
+    Makes a prediction based on the tags answered by the user and prints it to the terminal.
+    :param mlp: The neural network object.
+    :param data: The DataProcessor object containing the parsed/encoded CSV data.
+    :param new_ticket: The answers to all 9 tags.
+    :param is_early_prediction: Boolean specifying whether it is an early prediction or not.
+    :return: None
+    """
     # Convert new ticket to DataFrame and one-hot encode it for the MultiLayerPerceptron to make a prediction.
     new_ticket = pd.DataFrame(np.array(new_ticket.values()).T.tolist(),
                               index=np.array(new_ticket.keys()).T.tolist()).T
@@ -131,6 +150,11 @@ def make_prediction(mlp, data, new_ticket, is_early_prediction=False):
 
 
 def question_yes_no(question):
+    """
+    Prompts the user with a question, expecting a Yes or No answer. The user can also quit the program.
+    :param question: The String question to ask the user.
+    :return: The user's answer mapped to a valid String for future encoding.
+    """
     # Valid set of answers (default is "Yes").
     valid_answers = {"yes": "Yes", "y": "Yes", "yy": "Yes", "": "Yes",
                      "no": "No", "n": "No", "nn": "No",
@@ -151,6 +175,11 @@ def question_yes_no(question):
 
 
 def question_desired_team(question):
+    """
+    Prompts the user with a question, expecting a one of the 5 categories as an answer.
+    :param question: The String question to ask the user.
+    :return: The user's answer.
+    """
     while True:  # Keep asking desired team until a valid input is given.
         # Ask user a question and record his answer.
         sys.stdout.write(question)  # Use sys.stdout.write to keep input on same line as question.
@@ -162,27 +191,29 @@ def question_desired_team(question):
 
 
 def get_updated_csv_file_name(csv_file_name):
+    """
+    Generates the updated CSV file's name to avoid overwriting the original.
+    :param csv_file_name: The original CSV file name.
+    :return: The updated CSV file name.
+    """
     return "{}_updated".format(csv_file_name)
 
 
 def _print_welcome_message():
-    _print_ascii_title()
+    """
+    Prints the text-based interface welcome message to the user in the terminal.
+    :return: None
+    """
+    print_ascii_title()
     print()
     print("You can quit at any time by typing 'exit' or 'quit'.")
     print("Note: default answer is: 'Yes'.")
 
 
 def _exit_cli():
+    """
+    Exits the CLI.
+    :return: None
+    """
     print("\nExiting Ticket Logger.")
     exit(0)
-
-
-def _print_ascii_title():
-    print(""" _______ _      _        _      _                                 
-|__   __(_)    | |      | |    | |                                
-   | |   _  ___| | _____| |_   | |     ___   __ _  __ _  ___ _ __ 
-   | |  | |/ __| |/ / _ \ __|  | |    / _ \ / _  |/ _  |/ _ \  __|
-   | |  | | (__|   <  __/ |_   | |___| (_) | (_| | (_| |  __/ |   
-   |_|  |_|\___|_|\_\___|\__|  |______\___/ \__, |\__, |\___|_|   
-                                             __/ | __/ |          
-                                            |___/ |___/          """)
