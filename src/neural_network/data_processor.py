@@ -106,3 +106,21 @@ def inverse_encoding_no_categories(onehot_encoded, categories):
     for i, p in enumerate(inverse_encoding(onehot_encoded)):
         not_encoded.at[i] = categories[p]
     return not_encoded
+
+
+def append_new_ticket_to_csv(csv_file, ticket):
+    """
+    Converts a new ticket to a CSV row and appends the row to the end of a copy of the original CSV file.
+    :param csv_file: The CSV file name to append the ticket to.
+    :param ticket: The ticket to append to the CSV file.
+    :return: None.
+    """
+    # Convert ticket to a CSV row.
+    csv_line = "\n"
+    for k, v in ticket.items():
+        csv_line += ticket[k] + ","
+    csv_line = csv_line[:-1]  # Remove final comma.
+
+    # Write the row to the new CSV file.
+    with open("../data/{}.csv".format(csv_file), 'a') as f:
+        f.write(csv_line)

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 import src.config as config
-from src.neural_network.data_processor import DataProcessor, inverse_encoding_no_categories
+from src.neural_network.data_processor import append_new_ticket_to_csv, DataProcessor, inverse_encoding_no_categories
 from src.neural_network.multi_layer_perceptron import MultiLayerPerceptron
 
 # General variables.
@@ -53,6 +53,16 @@ def run_intermediate_agent():
         # Make a prediction based on a full ticket (user answered all 9 questions).
         if not early_prediction_made:
             make_prediction(data, new_ticket)
+
+        # Check if user is happy with the agent's choice of response team.
+        if question_yes_no("Are you happy with the response team chosen") == "No":
+            desired_response_team = question_desired_team("Please choose a response team that you think suits your "
+                                                          "problem best from the following choices:\n{}: "
+                                                          .format(categories))
+            final_ticket = new_ticket
+            final_ticket["Response Team"] = desired_response_team
+            new_csv_file_name = "{}_{}".format(config.csv_file, "updated")
+            append_new_ticket_to_csv(new_csv_file_name, final_ticket)
 
         # Ask if user wants to submit another ticket.
         if question_yes_no("Do you want to submit another ticket?") == "No":
@@ -122,6 +132,17 @@ def question_yes_no(question):
     except KeyError:
         print("Invalid answer entered. Please use Yes/YES/yes/y or No/NO/no/n.")
         exit(1)
+
+
+def question_desired_team(question):
+    while True:  # Keep asking desired team until a valid input is given.
+        # Ask user a question and record his answer.
+        sys.stdout.write(question)  # Use sys.stdout.write to keep input on same line as question.
+        user_answer = input().title()
+        if user_answer in categories:
+            return user_answer
+        else:
+            print("The team you have chosen cannot be recognised.")
 
 
 def _print_welcome_message():
