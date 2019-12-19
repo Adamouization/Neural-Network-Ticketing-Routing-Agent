@@ -76,14 +76,14 @@ class MultiLayerPerceptron:
     def train(self):
         """
         Trains the neural network using the training data.
-        :return:
+        :return: None
         """
         self.mlp.fit(self.X_train, self.y_train)
 
     def test(self):
         """
         Test by making predictions based on the testing data input.
-        :return:
+        :return: None
         """
         self.predictions = self.mlp.predict(self.X_test)
         probability_predictions = self.mlp.predict_proba(self.X_test)
