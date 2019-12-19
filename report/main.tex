@@ -42,7 +42,7 @@
 \title{
     CS5011 Artificial Intelligence Practice\\Assignment 4 Report\\
     \begin{large}
-    University of St Andrews - Schoold of Computer Science
+    University of St Andrews - School of Computer Science
     \end{large}
 }
 \titlepic{\includegraphics[width=0.3\linewidth]{report/figures/st-andrews-logo.jpeg}}
@@ -115,15 +115,15 @@ Here are a few examples that can be used to run the program:
 
 \subsubsection{PEAS Model}
 
-This section defines the PEAS model for a ticketing routing-based agent ...
+This section defines the PEAS model for a ticketing routing-based agent that uses an artificial neural network to learn based on past data and make smart predictions. The aim of the agent is to predict an appropriate response team based on the ticket tags.
 
-\paragraph{Performance measure}\label{sec:performance-measures} todo.
+\paragraph{Performance measure}\label{sec:performance-measures} The efficiency of the training step based on the number of epochs required to train to a certain target error, and the testing accuracy. The number of questions to make a prediction and their correctness can also be measured.
 
-\paragraph{Environment} todo.
+\paragraph{Environment} This is a single-agent and fully-observable environment represented by a neural network and the text-based interface used to interact with a user logging a new ticket. Additionally, it can be said that the basic agent environment is deterministic (the next state is determined by the current state and the action executed) and stochastic for the intermediate agent (user input is unknown), according to the definitions set by Russell Norvig in \textit{Artificial intelligence: a modern approach}.
 
-\paragraph{Actuators} todo.
+\paragraph{Actuators} The agent may accept input and target data to learn by backpropagating the calculated error between the input and target data in order to adjust the weights of the neural network (also known as Stochastic Gradient Descent). It may also predict an output based on new unseen data.
 
-\paragraph{Sensors} todo.
+\paragraph{Sensors} The agent is always aware of the environment and can calculate feedback error based on input and target data, as well as receive responses to questions from the user.
 
 % ----------------------------------
 
