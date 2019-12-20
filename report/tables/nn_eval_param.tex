@@ -1,0 +1,14 @@
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Activation}             & \textbf{\begin{tabular}[c]{@{}c@{}}Hidden\\ Neurons\end{tabular}} & \textbf{$\alpha$}          & \textbf{$\beta$}           & \textbf{\begin{tabular}[c]{@{}c@{}}N Iter \\ \\ No Change\end{tabular}} & \textbf{Solver}             & \textbf{Tol}                  & \textbf{\begin{tabular}[c]{@{}c@{}}Mean \\ \\ Accuracy\end{tabular}} \\ \hline
+{\color[HTML]{036400} logistic} & {\color[HTML]{036400} (15,)}                                      & {\color[HTML]{036400} 0.6} & {\color[HTML]{036400} 0.9} & {\color[HTML]{036400} 1000}                                             & {\color[HTML]{036400} adam} & {\color[HTML]{036400} 0.0001} & {\color[HTML]{036400} 98.5\%}                                        \\ \hline
+{\color[HTML]{009901} tanh}     & {\color[HTML]{009901} (5,)}                                       & {\color[HTML]{009901} 0.8} & {\color[HTML]{009901} 0.1} & {\color[HTML]{009901} 100}                                              & {\color[HTML]{009901} sgd}  & {\color[HTML]{009901} 0.0001} & {\color[HTML]{009901} 98.0\%}                                        \\ \hline
+{\color[HTML]{009901} logistic} & {\color[HTML]{009901} (9,)}                                       & {\color[HTML]{009901} 0.2} & {\color[HTML]{009901} 0.9} & {\color[HTML]{009901} 1000}                                             & {\color[HTML]{009901} adam} & {\color[HTML]{009901} 0.1}    & {\color[HTML]{009901} 98.0\%}                                        \\ \hline
+{\color[HTML]{009901} tanh}     & {\color[HTML]{009901} (25,)}                                      & {\color[HTML]{009901} 1}   & {\color[HTML]{009901} 0.1} & {\color[HTML]{009901} 1000}                                             & {\color[HTML]{009901} sgd}  & {\color[HTML]{009901} 0.001}  & {\color[HTML]{009901} 98.0\%}                                        \\ \hline
+{\color[HTML]{CB0000} logistic} & {\color[HTML]{CB0000} (3,)}                                       & {\color[HTML]{CB0000} 1}   & {\color[HTML]{CB0000} 0.5} & {\color[HTML]{CB0000} 1000}                                             & {\color[HTML]{CB0000} adam} & {\color[HTML]{CB0000} 0.001}  & {\color[HTML]{CB0000} 38.0\%}                                        \\ \hline
+\end{tabular}
+\caption{The 5 neural network hyperparameters used for evaluation, including 4 optimal and 1 sub-optimal.}
+\label{tab:nn_hyperparam_eval}
+\end{table}
