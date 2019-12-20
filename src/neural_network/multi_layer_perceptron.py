@@ -1,12 +1,15 @@
 import joblib
+import subprocess
 
 from matplotlib.offsetbox import AnchoredText
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sn
+from sklearn import tree
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
+from sklearn.tree import export_graphviz
 
 import config as config
 from neural_network.data_processor import inverse_encoding, inverse_encoding_no_categories
@@ -18,10 +21,11 @@ class MultiLayerPerceptron:
     the neural network, test it by making predictions and plotting evaluation results.
     """
 
-    def __init__(self, name, input_data, target_data, hidden_layers_size=(15,), solver="adam",
+    def __init__(self, classifier_model, name, input_data, target_data, hidden_layers_size=(15,), solver="adam",
                  activation_function="logistic", learning_rate_init=0.6, momentum=0.9, optimisation_tolerance=0.0001,
                  num_iterations_no_change=1000, max_iterations=10000, verbose=config.debug):
         """
+        Beginner Agent:
         Initialise variables and create a new neural network using SciKit's MLPClassifier class. Default neural network
         hyperparameters are from the optimal solution generate from the Grid Search algorithm. By default, the network
         has a single hidden layer with 15 hidden units, uses a Stochastic Gradient Descent Optimiser as a solver and a
@@ -29,6 +33,10 @@ class MultiLayerPerceptron:
         include an optimisation tolerance of 0.0001 after 1000 iterations with no changes and a maximum number of
         iterations of 10000.
 
+        Advanced Agent:
+        Initialise variables and create a new decision tree using SciKit's DecisionTreeClassifier class.
+
+        :param classifier_model: MLP or DT.
         :param name: The name of the neural network (based on the CSV file).
         :param input_data: The input data.
         :param target_data: The target data.
@@ -43,6 +51,7 @@ class MultiLayerPerceptron:
         :param max_iterations: The maximum number of iterations before ending training.
         :param verbose: Used to debug. Prints error at each iteration when set to True.
         """
+        self.classifier_model = classifier_model
         self.name = name
         self.input_data = input_data
         self.target_data = target_data
@@ -50,17 +59,23 @@ class MultiLayerPerceptron:
         self.categories = list()
         self.predictions = None
         self.cm = None
-        self.mlp = MLPClassifier(
-            hidden_layer_sizes=hidden_layers_size,
-            solver=solver,
-            activation=activation_function,
-            learning_rate_init=learning_rate_init,
-            momentum=momentum,
-            tol=optimisation_tolerance,
-            n_iter_no_change=num_iterations_no_change,
-            max_iter=max_iterations,
-            verbose=verbose,
-        )
+
+        # Neural Network classifier.
+        if self.classifier_model == "mlp":
+            self.mlp = MLPClassifier(
+                hidden_layer_sizes=hidden_layers_size,
+                solver=solver,
+                activation=activation_function,
+                learning_rate_init=learning_rate_init,
+                momentum=momentum,
+                tol=optimisation_tolerance,
+                n_iter_no_change=num_iterations_no_change,
+                max_iter=max_iterations,
+                verbose=verbose,
+            )
+        # Decision Tree classifier.
+        elif self.classifier_model == "dt":
+            self.mlp = tree.DecisionTreeClassifier(criterion='gini', min_samples_split=20)
 
     def split_data(self):
         """
@@ -97,32 +112,35 @@ class MultiLayerPerceptron:
     def show_results(self):
         """
         Plots the training and testing results, starting with a plot of the error loss function w.r.t. the number of
-        epochs, followed by the confusion matrix of the testing predictions plotted in a heatmap.
+        epochs, followed by the confusion matrix of the testing predictions plotted in a heatmap. If testing a
+        decision tree, export it using graphviz.
         :return: None
         """
         fontsize = 12
 
-        # Save error loss curve data to csv file.
-        self.save_error_loss()
+        # Plot & save error loss curve.
+        if self.classifier_model == "mlp":
+            # Save error loss curve data to csv file.
+            self.save_error_loss()
 
-        # Plot error loss curve.
-        fig, ax = plt.subplots()
-        ax.plot(self.mlp.loss_curve_)
-        plt.xlabel("Epochs", fontsize=fontsize)
-        plt.ylabel("Error loss", fontsize=fontsize)
-        anchored_text = AnchoredText(
-            "Epochs: {}\nError: {}".format(len(self.mlp.loss_curve_), round(self.mlp.loss_curve_[-1], 5)),
-            loc='upper right', prop=dict(size=8), frameon=True)
-        anchored_text.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
-        ax.set_title(
-            "hidden_layer_sizes:{} solver:{} activation:{} learning_rate_init:{} momentum:{}".format(
-                self.mlp.hidden_layer_sizes, self.mlp.solver, self.mlp.activation, self.mlp.learning_rate_init,
-                self.mlp.momentum
-            ),
-            fontsize=8
-        )
-        ax.add_artist(anchored_text)
-        plt.show()
+            # Plot error loss curve.
+            fig, ax = plt.subplots()
+            ax.plot(self.mlp.loss_curve_)
+            plt.xlabel("Epochs", fontsize=fontsize)
+            plt.ylabel("Error loss", fontsize=fontsize)
+            anchored_text = AnchoredText(
+                "Epochs: {}\nError: {}".format(len(self.mlp.loss_curve_), round(self.mlp.loss_curve_[-1], 5)),
+                loc='upper right', prop=dict(size=8), frameon=True)
+            anchored_text.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+            ax.set_title(
+                "hidden_layer_sizes:{} solver:{} activation:{} learning_rate_init:{} momentum:{}".format(
+                    self.mlp.hidden_layer_sizes, self.mlp.solver, self.mlp.activation, self.mlp.learning_rate_init,
+                    self.mlp.momentum
+                ),
+                fontsize=8
+            )
+            ax.add_artist(anchored_text)
+            plt.show()
 
         # Calculate confusion matrix
         ground_truth_values = inverse_encoding(self.y_test)
@@ -149,6 +167,20 @@ class MultiLayerPerceptron:
             print(self.cm)
             print()
             print(cr)
+
+        # Visualise decision tree using Graphviz.
+        # Code for saving to .dot format inspired from:
+        # http://chrisstrelioff.ws/sandbox/2015/06/08/decision_trees_in_python_with_scikit_learn_and_pandas.html
+        if self.classifier_model == "dt":
+            feature_names = ["Request", "Incident", "WebServices", "Login", "Wireless", "Printing", "IdCards",
+                             "Staff", "Students"]
+            with open("dt.dot", 'w') as file:
+                export_graphviz(self.mlp, out_file=file, feature_names=feature_names, filled=True, rounded=True)
+            command = ["dot", "-Tpng", "dt.dot", "-o", "dt.png"]
+            try:
+                subprocess.check_call(command)
+            except:
+                exit("Could not run dot, ie graphviz, to produce visualization")
 
     def save_trained_nn(self):
         """

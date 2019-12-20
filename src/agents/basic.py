@@ -49,6 +49,7 @@ def create_multi_layer_perceptron(data):
     :return: The instantiated neural network.
     """
     return MultiLayerPerceptron(
+        classifier_model="mlp",
         name=config.csv_file,
         input_data=data.input_data_encoded,
         target_data=data.target_data_encoded,
