@@ -101,6 +101,9 @@ class MultiLayerPerceptron:
         """
         fontsize = 12
 
+        # Save error loss curve data to csv file.
+        self.save_error_loss()
+
         # Plot error loss curve.
         fig, ax = plt.subplots()
         ax.plot(self.mlp.loss_curve_)
@@ -152,6 +155,19 @@ class MultiLayerPerceptron:
         :return: None
         """
         joblib.dump(self.mlp, "../neural_networks/{}.joblib".format(self.name))
+
+    def save_error_loss(self):
+        """
+        Save the error loss curve to a CSV file for further analysis.
+        :return: None.
+        """
+        df_error_loss = pd.DataFrame(self.mlp.loss_curve_)  # Convert list to a DataFrame.
+        df_error_loss.index = df_error_loss.index + 1  # Increment index by 1.
+        df_error_loss.to_csv("../results/error_loss/hls{}-{}-{}-a{}-m{}.csv".format(self.mlp.hidden_layer_sizes,
+                                                                                    self.mlp.solver,
+                                                                                    self.mlp.activation,
+                                                                                    self.mlp.learning_rate_init,
+                                                                                    self.mlp.momentum), header=False)
 
 
 def _calculate_accuracy(cm):
