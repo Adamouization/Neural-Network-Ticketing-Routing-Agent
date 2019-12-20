@@ -77,6 +77,10 @@ The following requirements were attempted:
         \item Early predictions.
         \item Neural network re-training.
     \end{itemize}
+    \item Advanced Agent:
+    \begin{itemize}
+        \item Decision tree classifier.
+    \end{itemize}
         
 \end{itemize}
 
@@ -110,7 +114,7 @@ where:
     \begin{itemize}
         \item \textit{Bas}: Train and test the neural network with the optimal parameters, or run the Grid Search algorithm to determine the optimal parameters.
         \item \textit{Int}: CLI text-based application to submit a new ticket and predict to which response team it should go.
-        \item \textit{Adv}: todo.
+        \item \textit{Adv}: Train and test a decision tree classifier.
     \end{itemize}
     \item \textit{CSV} is the CSV file containing the data used to train/test the data.
     \item \textit{-g}: is a flag that run the grid search algorithm when set.
@@ -125,7 +129,8 @@ Here are a few examples that can be used to run the program:
 \begin{itemize}
     \item ``\textit{python A4Main.py -a Bas -c tickets -d}'' to train/test the neural network.
     \item ``\textit{python A4Main.py -a Bas -c tickets -g}'' to run the grid search algorithm.
-    \item ``\textit{python A4Main.py -a Int -c tickets}'' to submit a new ticket through the CLI text-based interface
+    \item ``\textit{python A4Main.py -a Int -c tickets}'' to submit a new ticket through the CLI text-based interface.
+    \item ``\textit{python A4Main.py -a Adv -c tickets}'' to train/test the decision tree.
     \item ``\textit{python A4Main.py -h}'' for help on how to run the agent.
 \end{itemize}
 
@@ -162,7 +167,7 @@ This section defines the PEAS model for a ticketing routing-based agent that use
 
 \subsubsection{Project Structure}
 
-The project is divided in three main sections:
+The project is divided into three main sections:
 
 \begin{itemize}
     \item The \textit{agents} module, containing functions to implement the execution of flow of each agent.
@@ -177,7 +182,7 @@ The \textit{data} directory stores the CSV data, the \textit{neural\_networks} d
 \subsubsection{Neural Network Training \& Testing (Basic Agent)}
 \label{sec:basic-agent}
 
-The basic agent takes a CSV file as input to be used for training and testing. It instantiates the custom \textit{DataProcessor} class containing functions for parsing the CSV file (retrieving tags and categories) and splitting the data between inputs and targets before encoding/decoding it. When being passed around, the data is often held in a \textit{DataFrame}\footnote{Pandas DataFrame: \url{https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html}}, which allows for more manipulation than Python's built-in \textit{list}. The input data is encoded in either 0s or 1s, while the target data is encoded using one-hot encoding. Figure \ref{fig:data_encoding} depicts how the data is split and encoded.
+The basic agent takes a CSV file as input to be used for training and testing. It instantiates the custom \textit{DataProcessor} class containing functions for parsing the CSV file (retrieving tags and categories) and splitting the data between inputs and targets before encoding/decoding it. When being passed around, the data is often held in a \textit{DataFrame}\footnote{Pandas DataFrame: \url{https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html}}, which allows for more manipulation than Python's built-in \textit{list}. The input data is encoded in either 0s or 1s, while the target data is encoded using a one-hot encoding. Figure \ref{fig:data_encoding} depicts how the data is split and encoded.
 
 \begin{figure}[h] 
 \centerline{\includegraphics[width=\textwidth]{report/figures/data_encoding.png}}
@@ -214,10 +219,11 @@ After an early prediction is made, the user can state whether he is happy with t
 
 % ----------------------------------
 
-\subsubsection{Advanced}
+\subsubsection{Decision Trees (Advanced Agent)}
 
-todo
+Decision trees are implemented using Scikit's \textit{DecisionTreeClassifier}\footnote{Scikit DecisionTreeClassifier: \url{https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html}}. Most of the code used in the previous agents is re-used for this classifier: the decision tree is trained and tested using the same functions mentioned in Section \ref{sec:basic-agent}.\\
 
+In brief, decision tree classifiers are similar to flowcharts: they divide the data set into smaller sets based on filtering criteria (\textit{``Yes''}/\textit{``No''} answers to each tag) until each set only contains one class. The splitting is carried out based on the Gini score, a measure indicating the effectiveness of the split: if the Gini score is 0, then the resulting split successfully isolated all inputs from one class \cite{dt}. A minimum sample split of 20 is set to avoid overfitting the data (the tree would become too deep). A pair of diagrams representing the trained decision tree is generated using the \textit{Graphviz}\footnote{Graphviz: \url{https://graphviz.org/}} tool, and can be found in Appendix \ref{sec:appendix-decision-trees}.
 
 % ----------------------------------
 
@@ -227,7 +233,7 @@ todo
 \subsubsection{Optimal Hyperparameters}
 \label{sec:optimal-hyperparams}
 
-In order to find the optimal hyperparameters to train the neural network, a grid search algorithm is implemented. The algorithm exhaustively trains and tests the neural network with every combination from a pre-defined set of parameters and measures its accuracy. The parameters tested include the number of neurons in the hidden layer, the solver, the activation function, the learning rate, the momentum, the tolerance and the maximum number of iterations after which training stops if error does not improve by the tolerance. These can be found in the Listing below:
+To find the optimal hyperparameters to train the neural network, a grid search algorithm is implemented. The algorithm exhaustively trains and tests the neural network with every combination from a pre-defined set of parameters and measures its accuracy. The parameters tested include the number of neurons in the hidden layer, the solver, the activation function, the learning rate, the momentum, the tolerance and the maximum number of iterations after which training stops if the error does not improve by the tolerance. These can be found in the Listing below:
 
 \begin{lstlisting}[language=Python]
 grid_search_params = {
@@ -244,12 +250,14 @@ grid_search_params = {
 
 Overall, 12,600 unique combinations of parameters were tested in 1h26m. From these tests, 14 combinations of hyperparameters with a +98\% mean accuracy (over 5 runs for even 80\%/20\% data splits) emerged as optimal, as depicted in Figure \ref{fig:gridsearch_results}. These optimal parameters can be found in more detail in Appendix \ref{sec:appendix-optimal-hyperparameters}.
 
+\clearpage
+
 \begin{figure}[h] 
 \centerline{\includegraphics[width=\textwidth]{report/figures/gridsearch_results.png}}
 \caption{\label{fig:gridsearch_results}Distribution of the accuracies of the 12,600 combinations of hyperparameters tested with the grid search algorithm.}
 \end{figure}
 
-It is interesting to note that over half of these tests result in accuracies range between [90\%-98\%[. This is likely due to the fact that there is very little data to begin with (only 250 entry points), meaning that unless the chosen hyperparameters are really poor performance-wise (e.g. 3 hidden units with momentum 0.1 and tolerance 1, resulting in a mean accuracy of 5.5\%), the neural network will always train to an acceptable level. The lack of data is also a convincing argument to avoid finding optimal general parameters through validation.
+It is interesting to note that over half of these tests result in accuracies ranging between [90\%-98\%[. This is likely due to the fact that there is very little data to begin with (only 250 entry points), meaning that unless the chosen hyperparameters are very poor performance-wise (e.g. 3 hidden units with momentum 0.1 and tolerance 1, resulting in a mean accuracy of 5.5\%), the neural network will always train to an acceptable level. The lack of data is also a convincing argument to avoid finding optimal general parameters through validation.
 
 \subsubsection{Error Loss and Confusion Matrices}
 \label{sec:eval-errorloss-cm}
@@ -260,35 +268,49 @@ Four optimal combinations of hyperparameters have been chosen for comparison, al
 
 Plotting the error function with respect to the number of epochs required to reach the designated tolerance gives interesting insights about the training, as seen in Figure \ref{fig:error-loss-curve}. Indeed, the error loss curves are all similar when using optimal parameters, quickly converging towards the desired error. A notable difference is the effect of a low momentum $\beta=0.1$ on the convergence speed, causing the light blue slope (5 hidden neurons) to reach the desired error more slowly than neural networks with high momentum.
 
+\clearpage
+
 \begin{figure}[h] 
 \centerline{\includegraphics[width=\textwidth]{report/figures/error_loss_curve.png}}
 \caption{\label{fig:error-loss-curve}Error loss curves during the training of 5 different combinations of hyperparameters.}
 \end{figure}
 
-However, the most notable difference between training with optimal parameters (accuracy $\geqslant$ 98\%) and sub-optimal parameters (accuracy = 38\%) is that the error loss curve is less smooth (small peaks can be seen across the curve before epoch 50) due to the high learning rate and lack of neural units (data is under-fitted). The curve is also characterised by multiple plateaus (straight lines with no improvements) and small ravines (minor increases in error), which would be solved with an increased momentum.\\
+However, the most notable difference between training with optimal parameters (accuracy $\geqslant$ 98\%) and sub-optimal parameters (accuracy = 38\%) is that the error loss curve is less smooth (small peaks can be seen across the curve before epoch 50) due to the high learning rate and lack of neural units (data is under-fitted). The curve is also characterised by multiple plateaus (straight lines with no improvements) and small ravines (minor increases in error), which would be solved with increased momentum.\\
 
-Once the training is completed, an aggregated confusion matrix over five runs is calculated and plotted in a heatmap for each neural network. This clearly shows the superior accuracy of neural networks using optimal hyperparameters compared to sub-optimal hyperparameters. The results can be seen in Figure \ref{fig:confusion_matrices}.
-
-\begin{figure}[h] 
-\centerline{\includegraphics[width=1.1\textwidth]{report/figures/confusion_matrices.png}}
-\caption{\label{fig:confusion_matrices}5-run aggregate confusion matrices of the 5 different combinations of hyperparameters.}
-\end{figure}
+Once the training is completed, an aggregated confusion matrix over five runs is calculated and plotted in a heatmap for each neural network. This clearly shows the superior accuracy of neural networks using optimal hyperparameters compared to sub-optimal hyperparameters. The results can be seen in Appendix \ref{sec:appendix-confusion_matrices}.
 
 \subsubsection{Ticketing Routing Agent}
 
 The intermediate agent is evaluated by interacting with the CLI-based agent. The full interaction used for this evaluation can be found in Appendix \ref{sec:console-output-example}. It can be seen that when the user creates a new ticket with \textit{``No''} answered to every question, the agent predicts it should go to \textit{Networking}. The user then suggests sending it to \textit{Emergencies} and the neural network is consequently retrained (lines 49 to 53). When submitting a new ticket with the re-trained neural network, the agent immediately predicts that the ticket should go the \textit{Emergencies} after only three questions (line 62), proving that it correctly learned from its mistake.\\
 
-However, this is not always the case, as for cases where tags are similar for different outputs, a single team suggestion is not enough to shift the weights of the neural network for the agent to correctly predict the answer for the next iteration. If a dozen or more users all suggested the same correction to the agent, then the weights would change enough to allow the suggested team to be predicted.\\
+However, this is not always the case, as for cases where tags are similar for different outputs, a single team suggestion is not enough to shift the weights of the neural network for the agent to correctly predict the answer for the next iteration. If a dozen or more users all suggested the same correction to the agent, then the weights would change enough to allow the suggested team to be predicted.
+
+\subsubsection{Decision Trees}
+
+The neural network and decision tree classifiers' accuracy can be directly compared with their confusion matrices, as seen in Figure \ref{fig:evaluation_mlp_dt}, depicting that the neural network is more accurate than the decision tree. However, it is important to note that the MLPClassifier is being used with optimal hyperparameters, whereas hyperparameters recommended by SciKit are used for the DecisionTreeClassifier.
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=0.85\textwidth]{report/figures/evaluation_mlp_dt.png}}
+\caption{\label{fig:evaluation_mlp_dt}5-run aggregate confusion matrices for the a neural network classifier and a decision tree classifier.}
+\end{figure}
+
+Despite being less accurate, the decision tree classifier runs on average more quickly than the neural network classifier, averaging at 0.3 seconds in contrast to 0.94 seconds for the MLP. This betrays the key difference between ``deep'' learning structures: even a neural network with a single hidden layer is more exhaustive than ``shallow'' learning models like decision trees.\\
 
 \textit{Design, Implementation \& Evaluation Section word count: \underline{XXXX}}
 
 % -------------------------------------- 3 - TEST SUMMARY ------------------------------------------ 
+\clearpage
 \section{Test Summary}
 \label{sec:test-summary}
 
 \subsection{Basic Agent Testing}
 
-The basic agent mainly consists in implementing a neural network using the Scikit library for Python. There is therefore no need to test the functions provided by Scikit.
+The basic agent mainly consists of implementing a neural network using the Scikit library for Python. There is therefore no need to test the functions provided by Scikit. However, one test that can be carried out is running the basic agent and checking that the outputs are correct, namely the error loss curve and the confusion matrix. Running the basic agent using the optimal hyperparameters produces the result seen in Figure \ref{fig:basic_testing}, indicating that the agent is behaving as intended,
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=0.85\textwidth]{report/figures/basic_testing.png}}
+\caption{\label{fig:basic_testing}Error loss curve and confusion matrix produced when training/testing the neural network with optimal hyperparameters.}
+\end{figure}
 
 \subsection{Intermediate Agent Testing}
 
@@ -325,12 +347,47 @@ A screenshot of the project’s file structure in the PyCharm IDE to illustrate 
 % ------------------------
 
 \clearpage
+\section{Decision Trees}
+\label{sec:appendix-decision-trees}
+
+The trained decision trees generated with \textit{Graphviz}. The first one corresponds to the one used for the evaluation (with minimum sample split of 20), while the second corresponds to an overfitted decision tree ((with a default minimum sample split of 2).
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=\textwidth]{report/figures/decision_tree.png}}
+\label{fig:decision_tree}
+\end{figure}
+
+\begin{landscape}
+\begin{figure}[h] 
+\centerline{\includegraphics[width=1.35\textwidth]{report/figures/decision_tree_overfit.png}}
+\label{fig:decision_tree_overfit}
+\end{figure}
+\end{landscape}
+
+% ------------------------
+
+\clearpage
 \section{Optimal Hyperparameters}
 \label{sec:appendix-optimal-hyperparameters}
+
+The 14 optimal hyperparameters determined after running the grid search algorithm on 12,600 combinations.
 
 \begin{landscape}
 \input{report/tables/optimal_parameters.tex}
 \end{landscape}
+
+% ------------------------
+
+\clearpage
+\section{Aggregate Confusion Matrices}
+\label{sec:appendix-confusion_matrices}
+
+Five-run aggregate confusion matrices of the 5 different combinations of hyperparameters.
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=1.1\textwidth]{report/figures/confusion_matrices.png}}
+\label{fig:confusion_matrices}
+\end{figure}
 
 % ------------------------
 
@@ -368,7 +425,7 @@ A screenshot of the project’s file structure in the PyCharm IDE to illustrate 
 \includepdf[
     pages=1, 
     scale=0.8, 
-    pagecommand=\section{Intermediate Agent Text-Based Interface Testing}\label{sec:console-output-edge-cases}
+    pagecommand=\section{Intermediate Agent Text-Based Interface Input Testing}\label{sec:console-output-edge-cases}
 ]{figures/cli-output-edge-cases.pdf}
 \includepdf[
     pages=2, 
