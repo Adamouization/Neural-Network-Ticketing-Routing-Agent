@@ -1,6 +1,7 @@
 \documentclass[letterpaper,12pt]{article}
 \usepackage{tabularx} % extra features for tabular environment
-\usepackage{amsmath}  % improve math presentation
+\usepackage{amsmath}  % improve maths presentation
+\usepackage{amssymb} % maths symbols
 \usepackage{graphicx} % takes care of graphic including machinery
 \usepackage[margin=0.95in,letterpaper]{geometry} % decreases margins
 \usepackage{cite} % takes care of citations
@@ -11,8 +12,10 @@
 \usepackage{color} % defines colours for code listings
 \usepackage{comment} % allows for block of comments
 \usepackage{gensymb} % degree symbol
+\usepackage[table,xcdraw]{xcolor} % table colouring
 \usepackage[cc]{titlepic}  % allows a pic to be included in the title page
 \usepackage[final]{hyperref} % adds hyper links inside the generated pdf file
+\usepackage{pdfpages} % include pdfs
 
 % style code listings
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -173,37 +176,42 @@ The \textit{data} directory stores the CSV data, the \textit{neural\_networks} d
 % ----------------------------------
 
 \subsubsection{Neural Network Training \& Testing (Basic Agent)}
+\label{sec:basic-agent}
 
-The basic agent takes a CSV file as input used for training and testing. It creates a new instance of the custom \textit{DataProcessor} class, which contains functions for parsing the CSV file (retrieving tags and categories), splitting the data between inputs and targets, and encoding/decoding it. The input data is encoded in either 0s or 1s, while the target data is encoded using one-hot encoding. Figure \ref{fig:data_encoding} depicts how the data is split and encoded.
+The basic agent takes a CSV file as input to be used for training and testing. It instantiates the custom \textit{DataProcessor} class containing functions for parsing the CSV file (retrieving tags and categories), splitting the data between inputs and targets, and encoding/decoding it. The input data is encoded in either 0s or 1s, while the target data is encoded using one-hot encoding. Figure \ref{fig:data_encoding} depicts how the data is split and encoded.
 
 \begin{figure}[h] 
 \centerline{\includegraphics[width=\textwidth]{report/figures/data_encoding.png}}
-\caption{\label{fig:data_encoding}todo.}
+\caption{\label{fig:data_encoding}At the top, the decoded data; at the bottom, the encoded data.}
 \end{figure}
 
-The data must be fed to the neural network in binary form. Therefore, one-hot encoding is chosen for the target categories as there are only five in total, which suits the sparse representation of the data. Only a single digit may have the value 1 in one-hot encoding, while the others remain at value 0. The one-hot encodings of the target data can be seen in Figure \ref{fig:one_hot_encoding}.
+The data must be fed to the neural network in binary form. One-hot encoding is therefore chosen as it suits the sparse representation of the data, which is made up of only five target categories. Only a single digit may have the value 1 in one-hot encoding, while the others remain at value 0 \cite{lec16}. The one-hot encodings of the target categories can be seen in Figure \ref{fig:one_hot_encoding}.
 
 \begin{figure}[h] 
 \centerline{\includegraphics[width=0.4\textwidth]{report/figures/one_hot_encoding.png}}
-\caption{\label{fig:one_hot_encoding}todo.}
+\caption{\label{fig:one_hot_encoding}One-hot encoding of the categories.}
 \end{figure}
 
-Once the data is encoded, an instance of the custom \textit{MultiLayerPerceptron} class is created, containing functions to split the training/testing data, training \& testing the neural network, displaying results and saving the network with the trained weights. The class uses \textit{Scikit}'s \textit{MLPClassifier}\footnote{Scikit MLPClassifier: \url{https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html}} to implement the neural network. The class instantiates with default hyperparameters for the neural network, which can be overwritten when creating a new \textit{MultiLayerPerceptron} (see Listing below).
+Once the data is encoded, an instance of the custom \textit{MultiLayerPerceptron} class is created, containing functions to split the training/testing data, training \& testing the neural network, displaying results and saving the network with the trained weights. The class uses \textit{Scikit}'s \textit{MLPClassifier}\footnote{Scikit MLPClassifier: \url{https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html}} to implement the neural network and is instantiated with optimal hyperparameters determined in Section \ref{sec:optimal-hyperparams} for the neural network, which can be overwritten when creating a new \textit{MultiLayerPerceptron} (see Listing below).
 
 \begin{lstlisting}[language=Python]
 class MultiLayerPerceptron:
     def __init__(self, name, input_data, target_data, hidden_layers_size=(15,), solver="adam", activation_function="logistic", learning_rate_init=0.6, momentum=0.9, optimisation_tolerance=0.0001, num_iterations_no_change=1000, max_iterations=10000, verbose=config.debug):
 \end{lstlisting}
 
-An 80\%/20\% split is used for the training/testing data sets, with equal category distribution maintained between the training and testings sets, which is ensured through the use of the \textit{stratify} option in Scikit's \textit{train\_test\_split} function\footnote{Scikit train\_test\_split: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html}}. Indeed, because the data has 250 entries (including 50 for each of five outputs), the testing set will have 10 entries for each of the five categories.\\
+An 80\%/20\% split is used for the training/testing data sets, with equal category distribution maintained between the training and testings sets, which is ensured through the use of the \textit{stratify} option in Scikit's \textit{train\_test\_split} function\footnote{Scikit train\_test\_split: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html}}. Because the data has 250 entries (including 50 for each of five outputs), the testing set will have 10 entries for each of the five categories.\\
 
-The actual training is done with the \textit{fit} function, with the error loss plotted with regards to the number of epochs; while the testing is performed using the \textit{predict} and \textit{predict\_proba} functions and its accuracy visualised with a confusion matrix. These results can be seen in Section EVALUATION.
+The actual training is carried out using the \textit{fit} function, with the error loss plotted with regards to the number of epochs; while the testing is performed using the \textit{predict} and \textit{predict\_proba} functions and its accuracy visualised with a confusion matrix (counting the number of true positives/negatives and false positives/negatives) in a heatmap. These results can be seen in Section \ref{sec:eval-errorloss-cm}.
 
 % ----------------------------------
 
-\subsubsection{CLI Text-Based Ticketing-Routing Agent (Intermediate Agent)}
+\subsubsection{CLI-Based Ticketing-Routing Agent (Intermediate Agent)}
 
-todo
+The intermediate agent is built on a CLI\footnote{Command Line Interface} as an interactive text-based application allowing a human user to submit a new ticket. The agent records the \textit{``Yes''}/\textit{``No''} answers to each tag to create a new ticket, which is then used to as input to the previously trained neural network to make a prediction. The neural net is loaded using \textit{joblib} and tested using the \textit{predict} and \textit{predict\_proba} function.\\
+
+To avoid the repetitive task of answering all questions, the agent makes early predictions after the third, fifth and seventh questions. The prediction is made by filling out the missing fields in the ticket with the most common value (\textit{mode}) in the original CSV data.\\
+
+After an early prediction is made, the user can state whether he is happy with the result or not. If he is not, the agent asks more questions until the next early prediction or until all questions have been answered. Finally, if the user is not happy with the final prediction, he can specify the desired response team to send the ticket to (only if he has answered all questions and entered \textit{``No''} to every early prediction). This information is added to the end of a copy of the original CSV data file that is used to re-train the neural network in a similar fashion mentioned in Section \ref{sec:basic-agent}. The newly trained network is then saved and used for future predictions.
 
 % ----------------------------------
 
@@ -217,7 +225,63 @@ todo
 \subsection{Evaluation}
 \label{sec:evaluation}
 
-todo
+\subsubsection{Optimal Hyperparameters}
+\label{sec:optimal-hyperparams}
+
+In order to find the optimal hyperparameters to train the neural network, a grid search algorithm is implemented. The algorithm exhaustively trains and tests the neural network with every combination from a pre-defined set of parameters and measures its accuracy. The parameters tested include the number of neurons in the hidden layer, the solver, the activation function, the learning rate, the momentum, the tolerance and the maximum number of iterations after which training stops if error does not improve by the tolerance. These can be found in the Listing below:
+
+\begin{lstlisting}[language=Python]
+grid_search_params = {
+    `hidden_layer_sizes': [(3,), (5,), (7,), (9,), (15,), (25,)],
+    `solver': ["sgd", "adam"],
+    `activation': ["logistic", "relu", "tanh"],
+    `learning_rate_init': [0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
+    `momentum': [0.1, 0.3, 0.5, 0.7, 0.9],
+    `tol': [1, 0.1, 0.01, 0.001, 0.0001],
+    `n_iter_no_change': [100, 1000],
+    `max_iter': [10000]  # Parameter not being tested.
+}
+\end{lstlisting}
+
+Overall, 12,600 unique combinations of parameters were tested in 1h26m. From these tests, 14 combinations of hyperparameters with a +98\% mean accuracy (over 5 runs for even 80\%/20\% data splits) emerged as optimal, as depicted in Figure \ref{fig:gridsearch_results}. These optimal parameters can be found in Appendix \ref{sec:appendix-optimal-hyperparameters}.
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=\textwidth]{report/figures/gridsearch_results.png}}
+\caption{\label{fig:gridsearch_results}14 best combinations of hyperparamaters.}
+\end{figure}
+
+It is interesting to note that over half of these tests result in accuracies range between [90\%-98\%[. This is likely due to the fact that there is very little data to begin with (only 250 entry points), meaning that unless the chosen hyperparameters are really poor (e.g. 3 hidden units with momentum 0.1 and tolerance 1, resulting in a mean accuracy of 5.5\%), the neural network will always train to an acceptable level. The lack of data is also convincing enough to avoid finding optimal general parameters through validation.
+
+\subsubsection{Error Loss and Confusion Matrices}
+\label{sec:eval-errorloss-cm}
+
+Four optimal combinations of hyperparameters have been chosen for comparison, along with one poor set of hyperparameters to point out differences. These can be found in Table \ref{tab:nn_hyperparam_eval}.
+
+\input{report/tables/nn_eval_param.tex}
+
+Plotting the error function with respect to the number of epochs required to reach the designated tolerance gives interesting insights about the training, as seen in Figure \ref{fig:error-loss-curve}. Indeed, the error loss curve is similar when using optimal parameters, quickly converging towards the desired error. A notable difference is the effect of a low momentum $\beta=0.1$ on the convergence speed, causing the light blue slope to reach the desired error more slowly than neural networks with high momentum. However, the actual difference between training with optimal parameters (accuracy $\geqslant$ 98\%) and sub-optimal parameters (accuracy = 38\%) is that the error loss curve is less smooth (small peaks can be seen across the curve, especially before epoch 50) due to the high learning rate and lack of neural units (data is under-fitted) and it characterised by multiple plateaus. Other cases of sub-optimal neural networks would cause ravines, which would be solved with a higher momentum, or will cause the neural network over-fit the data due to a high number of hidden neurons.
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=\textwidth]{report/figures/error_loss_curve.png}}
+\caption{\label{fig:error-loss-curve}Error loss.}
+\end{figure}
+
+Once the training is completed, an aggregated confusion matrix over five runs is calculated and plotted in a heatmap for each neural network. The results can be seen in Figure \ref{fig:confusion_matrices}.
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=1.1\textwidth]{report/figures/confusion_matrices.png}}
+\caption{\label{fig:confusion_matrices}CM.}
+\end{figure}
+
+\subsubsection{Ticketing Routing Agent}
+
+A demo is attached in the appendix.
+
+When the user creates a new ticket and suggest which team to respond to, the neural network is retrained. However, answering the questions the same way does not predict the 
+
+This may be due to the fact that a single row is not enough to shift the weights between the neurons enough for the desired output. Perhaps if a dozen users all suggested the same correction to the agent, then the weights would change enough to allow the suggested team to be predicted.
+
+% retraining with new row doesn;t change outcome, need more users to request change
 
 \textit{Design, Implementation \& Evaluation Section word count: \underline{XXXX}}
 
@@ -238,20 +302,33 @@ todo
 % ------------------------
 
 \clearpage
-\section{UML Class Diagram}
-\label{sec:appendix-uml-class-diagram}
-
-The UML Class Diagrams of the code, generated by the yWorks \cite{yworks} plugin in the IntelliJ IDEA IDE.
+\section{Project File Structure}
+\label{sec:appendix-project-file-structure}
 
 todo
 
 % ------------------------
 
 \clearpage
-\section{Project File Structure}
-\label{sec:appendix-project-file-structure}
+\section{Optimal Hyperparameters}
+\label{sec:appendix-optimal-hyperparameters}
 
-todo
+\begin{landscape}
+\input{report/tables/optimal_parameters.tex}
+\end{landscape}
+
+% ------------------------
+
+\clearpage
+\includepdf[
+    pages=1, 
+    scale=0.8, 
+    pagecommand=\section{Ticketing-Routing Agent Console Output Example}\label{sec:console-output-example}
+]{figures/cli-output.pdf}
+\includepdf[
+    pages=2, 
+    scale=0.8
+]{figures/cli-output.pdf}
 
 % ------------------------
 
