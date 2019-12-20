@@ -49,6 +49,7 @@ class MultiLayerPerceptron:
         self.X_train, self.X_test, self.y_train, self.y_test = (int(),) * 4
         self.categories = list()
         self.predictions = None
+        self.cm = None
         self.mlp = MLPClassifier(
             hidden_layer_sizes=hidden_layers_size,
             solver=solver,
@@ -126,17 +127,17 @@ class MultiLayerPerceptron:
         # Calculate confusion matrix
         ground_truth_values = inverse_encoding(self.y_test)
         estimated_target_values = inverse_encoding_no_categories(self.predictions, self.categories)
-        cm = confusion_matrix(ground_truth_values, estimated_target_values)
+        self.cm = confusion_matrix(ground_truth_values, estimated_target_values)
 
-        accuracy = round(_calculate_accuracy(cm), 2)
+        accuracy = round(_calculate_accuracy(self.cm), 2)
         print("Accuracy: {}%".format(accuracy))
 
         # Convert confusion matrix from numpy array to pandas DataFrame
-        cm = pd.DataFrame(data=cm, index=[i for i in self.categories], columns=[i for i in self.categories])
+        self.cm = pd.DataFrame(data=self.cm, index=[i for i in self.categories], columns=[i for i in self.categories])
 
         # Display confusion matrix as a heat map.
         fig, ax = plt.subplots()
-        sn.heatmap(cm, cmap="YlGnBu", annot=True, annot_kws={"size": fontsize})
+        sn.heatmap(self.cm, cmap="YlGnBu", annot=True, annot_kws={"size": fontsize})
         plt.xlabel("Predictions", fontsize=fontsize)
         plt.ylabel("Ground truth values", fontsize=fontsize)
         ax.set_title("Accuracy: {}%".format(accuracy), fontsize=fontsize)
@@ -145,7 +146,7 @@ class MultiLayerPerceptron:
         if config.debug:
             # Generate classification report and print confusion matrix and report to command line.
             cr = classification_report(ground_truth_values, estimated_target_values)
-            print(cm)
+            print(self.cm)
             print()
             print(cr)
 
@@ -168,6 +169,9 @@ class MultiLayerPerceptron:
                                                                                     self.mlp.activation,
                                                                                     self.mlp.learning_rate_init,
                                                                                     self.mlp.momentum), header=False)
+
+    def get_confusion_matrix(self):
+        return self.cm
 
 
 def _calculate_accuracy(cm):
