@@ -26,7 +26,7 @@ def run_multi_layer_perceptron(mlp, is_refitted_nn=False):
     if is_refitted_nn:
         data_training_indexes = mlp.X_train.index.values  # Rows that are in the training set.
         if initial_data_points not in data_training_indexes:
-            print("no ok")  # todo
+            print("New data split into training set.")  # Todo: move data over
 
     mlp.train()
     mlp.test()
