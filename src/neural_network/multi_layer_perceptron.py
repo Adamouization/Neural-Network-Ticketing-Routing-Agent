@@ -168,19 +168,7 @@ class MultiLayerPerceptron:
             print()
             print(cr)
 
-        # Visualise decision tree using Graphviz.
-        # Code for saving to .dot format inspired from:
-        # http://chrisstrelioff.ws/sandbox/2015/06/08/decision_trees_in_python_with_scikit_learn_and_pandas.html
-        if self.classifier_model == "dt":
-            feature_names = ["Request", "Incident", "WebServices", "Login", "Wireless", "Printing", "IdCards",
-                             "Staff", "Students"]
-            with open("dt.dot", 'w') as file:
-                export_graphviz(self.mlp, out_file=file, feature_names=feature_names, filled=True, rounded=True)
-            command = ["dot", "-Tpng", "dt.dot", "-o", "dt.png"]
-            try:
-                subprocess.check_call(command)
-            except:
-                exit("Could not run dot, ie graphviz, to produce visualization")
+        # self._graphviz_diagram()
 
     def save_trained_nn(self):
         """
@@ -201,6 +189,29 @@ class MultiLayerPerceptron:
                                                                                     self.mlp.activation,
                                                                                     self.mlp.learning_rate_init,
                                                                                     self.mlp.momentum), header=False)
+
+    def _graphviz_diagram(self):
+        """
+        Visualise decision tree using Graphviz, saves diagram to a .dot format.
+
+        Code inspired from:
+        http://chrisstrelioff.ws/sandbox/2015/06/08/decision_trees_in_python_with_scikit_learn_and_pandas.html
+
+        NOTE: must have Graphviz installed to run this: https://graphviz.org/.
+
+        :return: None
+        """
+        #
+        if self.classifier_model == "dt":
+            feature_names = ["Request", "Incident", "WebServices", "Login", "Wireless", "Printing", "IdCards",
+                             "Staff", "Students"]
+            with open("dt.dot", 'w') as file:
+                export_graphviz(self.mlp, out_file=file, feature_names=feature_names, filled=True, rounded=True)
+            command = ["dot", "-Tpng", "dt.dot", "-o", "dt.png"]
+            try:
+                subprocess.check_call(command)
+            except:
+                exit("Could not run dot, ie graphviz, to produce visualization")
 
     def get_confusion_matrix(self):
         return self.cm
