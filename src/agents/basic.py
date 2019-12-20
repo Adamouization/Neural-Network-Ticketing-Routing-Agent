@@ -37,6 +37,9 @@ def run_basic_agent():
         run_multi_layer_perceptron(mlp)
         print_runtime("Training", round(time.time() - start_time, 2))  # Record and print runtime.
 
+        # Uncomment below to calculate an aggregate confusion matrix over 5 runs.
+        # aggregate_cm(data, runs=5)
+
 
 def create_multi_layer_perceptron(data):
     """
@@ -62,3 +65,41 @@ def run_grid_search(gs):
     gs.run_grid_search()
     gs.print_optimal_parameters()
     gs.save_grid_search()
+
+
+def aggregate_cm(data, runs):
+    """
+    Standalone script to calculate an aggregate confusion matrix.
+    :param runs: Number of iterations.
+    :param data: DataProcessor instance.
+    :return: None
+    """
+    import seaborn as sn
+    import matplotlib.pyplot as plt
+    aggregated_cm = None
+    title = ""
+    for count in range(0, runs, 1):
+        mlp = create_multi_layer_perceptron(data)
+        mlp.split_data()
+        mlp.train()
+        mlp.test()
+        mlp.show_results()
+        mlp.save_trained_nn()
+        cm = mlp.get_confusion_matrix()
+        if count == 0:  #
+            aggregated_cm = cm
+            aggregated_cm[:] = 0
+            title = "hls{}-{}-{}-a{}-m{}.csv".format(mlp.mlp.hidden_layer_sizes, mlp.mlp.solver, mlp.mlp.activation,
+                                                     mlp.mlp.learning_rate_init, mlp.mlp.momentum)
+        # Calculate aggregate.
+        for i, row in enumerate(cm.values):
+            for j, val in enumerate(row):
+                val = aggregated_cm.iloc[i][j] + val
+                aggregated_cm.iloc[i][j] = val
+    # Plot aggregate confusion matrix in heatmap.
+    fig, ax = plt.subplots()
+    sn.heatmap(aggregated_cm, cmap="YlGnBu", annot=True, annot_kws={"size": 12})
+    plt.xlabel("Predictions", fontsize=12)
+    plt.ylabel("Ground truth values", fontsize=12)
+    ax.set_title(title, fontsize=8)
+    plt.show()
