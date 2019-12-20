@@ -66,7 +66,7 @@ def run_intermediate_agent():
             if reply == "Exit":
                 _exit_cli()
 
-        # Make a prediction based on a full ticket (user answered all 9 questions).
+        # Make a prediction based on a full ticket (user answered all 8 questions).
         if not early_prediction_made:
             make_prediction(mlp_trained, data, new_ticket)
 
@@ -96,7 +96,6 @@ def run_intermediate_agent():
                 num_iterations_no_change=mlp_trained.n_iter_no_change,
                 max_iterations=mlp_trained.max_iter,
             )
-
             run_multi_layer_perceptron(mlp, is_refitted_nn=True)
 
             print("Your change will be taken into consideration for future tickets.")
