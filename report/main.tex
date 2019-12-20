@@ -68,15 +68,14 @@ The following requirements were attempted:
     \begin{itemize}
         \item Multilayer feedforward neural network.
         \item Data encoding and training/testing split.
+        \item Training/testing result visualisation in plots and heatmaps.
         \item Grid search algorithm for determining optimal hyperparameters.
     \end{itemize}
     \item Intermediate Agent:
     \begin{itemize}
         \item CLI text-based interface.
-    \end{itemize}
-    \item Additional Features:
-    \begin{itemize}
-        \item Training result visualisation in plots and heatmaps.
+        \item Early predictions.
+        \item Neural network re-training.
     \end{itemize}
         
 \end{itemize}
@@ -114,9 +113,9 @@ where:
         \item \textit{Adv}: todo.
     \end{itemize}
     \item \textit{CSV} is the CSV file containing the data used to train/test the data.
-    \item \textit{-g}: flag set to run the grid search algorithm.
-    \item \textit{-d}: flag set to enter debug mode, printing more statements to the command line.
-    \item \textit{-h}: flag for help on how to use the agent.
+    \item \textit{-g}: is a flag that run the grid search algorithm when set.
+    \item \textit{-d}: is a flag that enters \textit{debugging} mode, printing more statements to the command line, when set.
+    \item \textit{-h}: is a flag for printing help on how to use the program.
 \end{itemize}
 
 \paragraph{Examples}
@@ -147,13 +146,13 @@ Here are a few examples that can be used to run the program:
 
 \subsection{Design: PEAS Model}
 
-This section defines the PEAS model for a ticketing routing-based agent that uses a multilayer feedforward neural network in order to ultimately learn how to make smart predictions for the appropriate response team of future tickets.
+This section defines the PEAS model for a ticketing routing-based agent that uses a multilayer feedforward neural network in order to learn how to predict the appropriate response team for future tickets.
 
-\paragraph{Performance measure}\label{sec:performance-measures} The basic agent can be evaluated by the efficiency of the training step based on the number of epochs required to train to a certain target error, and the testing accuracy using a confusion matrix. The intermediate agent can be assessed by the number of questions to make a prediction and their correctness can also be measured.
+\paragraph{Performance measure}\label{sec:performance-measures} The basic agent's training efficiency can be evaluated with the error loss curve, and the testing accuracy by using a confusion matrix. The intermediate agent can be assessed by the correctness of its predictions.
 
 \paragraph{Environment} This is a single-agent and fully-observable environment represented by a neural network and the text-based interface used to interact with a user logging a new ticket. Additionally, it can be said that the basic agent environment is deterministic (the next state is determined by the current state and the action executed) and stochastic for the intermediate agent (user input is unknown), according to the definitions set by Russell \& Norvig in \textit{Artificial intelligence: a modern approach} \cite{russell2016artificial}.
 
-\paragraph{Actuators} The agent may accept input and target data it can learn from by backpropagating the calculated error between the input and target data in order to adjust the weights of the neural network (also known as Stochastic Gradient Descent). It may also predict an output based on unseen data.
+\paragraph{Actuators} The agent may accept input and target data it can learn from by backpropagating the calculated error between the input and target data in order to adjust the weights of the neural network (Stochastic Gradient Descent). It may also predict an output based on unseen data.
 
 \paragraph{Sensors} The basic agent is always aware of the environment and can calculate feedback error based on input and target data, while the intermediate agent can receive responses to questions by interacting with a human user.
 
@@ -171,18 +170,18 @@ The project is divided in three main sections:
     \item The \textit{main} section, containing the program's entry point \textit{A4Main.py} for parsing the command line arguments, global configuration settings in \textit{config.py} and printing methods in \textit{helpers.py}.
 \end{itemize}
 
-The \textit{data} directory stores the CSV data, the \textit{neural\_networks} directory the trained neural nets in \textit{``*.joblib''} format, and the \textit{results} directory the output of the grid search algorithm.
+The \textit{data} directory stores the CSV data, the \textit{neural\_networks} directory the trained neural nets in \textit{``*.joblib''} format, and the \textit{results} directory the various output of the agents. See Appendix \ref{sec:appendix-project-file-structure} for the full project structure.
 
 % ----------------------------------
 
 \subsubsection{Neural Network Training \& Testing (Basic Agent)}
 \label{sec:basic-agent}
 
-The basic agent takes a CSV file as input to be used for training and testing. It instantiates the custom \textit{DataProcessor} class containing functions for parsing the CSV file (retrieving tags and categories), splitting the data between inputs and targets, and encoding/decoding it. The input data is encoded in either 0s or 1s, while the target data is encoded using one-hot encoding. Figure \ref{fig:data_encoding} depicts how the data is split and encoded.
+The basic agent takes a CSV file as input to be used for training and testing. It instantiates the custom \textit{DataProcessor} class containing functions for parsing the CSV file (retrieving tags and categories) and splitting the data between inputs and targets before encoding/decoding it. When being passed around, the data is often held in a \textit{DataFrame}\footnote{Pandas DataFrame: \url{https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html}}, which allows for more manipulation than Python's built-in \textit{list}. The input data is encoded in either 0s or 1s, while the target data is encoded using one-hot encoding. Figure \ref{fig:data_encoding} depicts how the data is split and encoded.
 
 \begin{figure}[h] 
 \centerline{\includegraphics[width=\textwidth]{report/figures/data_encoding.png}}
-\caption{\label{fig:data_encoding}At the top, the decoded data; at the bottom, the encoded data.}
+\caption{\label{fig:data_encoding}Encoding of the data. At the top, the decoded data; at the bottom, the encoded data.}
 \end{figure}
 
 The data must be fed to the neural network in binary form. One-hot encoding is therefore chosen as it suits the sparse representation of the data, which is made up of only five target categories. Only a single digit may have the value 1 in one-hot encoding, while the others remain at value 0 \cite{lec16}. The one-hot encodings of the target categories can be seen in Figure \ref{fig:one_hot_encoding}.
@@ -192,22 +191,22 @@ The data must be fed to the neural network in binary form. One-hot encoding is t
 \caption{\label{fig:one_hot_encoding}One-hot encoding of the categories.}
 \end{figure}
 
-Once the data is encoded, an instance of the custom \textit{MultiLayerPerceptron} class is created, containing functions to split the training/testing data, training \& testing the neural network, displaying results and saving the network with the trained weights. The class uses \textit{Scikit}'s \textit{MLPClassifier}\footnote{Scikit MLPClassifier: \url{https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html}} to implement the neural network and is instantiated with optimal hyperparameters determined in Section \ref{sec:optimal-hyperparams} for the neural network, which can be overwritten when creating a new \textit{MultiLayerPerceptron} (see Listing below).
+Once the data is encoded, an instance of the custom \textit{MultiLayerPerceptron} class is created, containing functions to split the training/testing data, training \& testing the neural network, displaying results and saving the network with the trained weights. This custom class allows it to be easily re-used in the intermediate agent, thus avoiding code duplication. The class uses \textit{Scikit}'s \textit{MLPClassifier}\footnote{Scikit MLPClassifier: \url{https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html}} to implement the neural network and is instantiated with the optimal hyperparameters determined in Section \ref{sec:optimal-hyperparams}, which can be overwritten when creating a new \textit{MultiLayerPerceptron} (see Listing below).
 
 \begin{lstlisting}[language=Python]
 class MultiLayerPerceptron:
     def __init__(self, name, input_data, target_data, hidden_layers_size=(15,), solver="adam", activation_function="logistic", learning_rate_init=0.6, momentum=0.9, optimisation_tolerance=0.0001, num_iterations_no_change=1000, max_iterations=10000, verbose=config.debug):
 \end{lstlisting}
 
-An 80\%/20\% split is used for the training/testing data sets, with equal category distribution maintained between the training and testings sets, which is ensured through the use of the \textit{stratify} option in Scikit's \textit{train\_test\_split} function\footnote{Scikit train\_test\_split: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html}}. Because the data has 250 entries (including 50 for each of five outputs), the testing set will have 10 entries for each of the five categories.\\
+An 80\%/20\% split is used for the training/testing data sets, with equal category distribution maintained between the training and testings sets, which is ensured through the use of the \textit{stratify} option in Scikit's \textit{train\_test\_split} function\footnote{Scikit train\_test\_split: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html}}. Because the data has 250 even entries (50 for each of the five outputs), the testing set will therefore have 10 entries for each of the five categories\footnote{250 data entries, 50 per response team, 80\%/20\% data split so 10 of each end up in the training set.}.\\
 
-The actual training is carried out using the \textit{fit} function, with the error loss plotted with regards to the number of epochs; while the testing is performed using the \textit{predict} and \textit{predict\_proba} functions and its accuracy visualised with a confusion matrix (counting the number of true positives/negatives and false positives/negatives) in a heatmap. These results can be seen in Section \ref{sec:eval-errorloss-cm}.
+The actual training is carried out using the \textit{fit} function, with the \textit{error\_loss\_} plotted with regards to the number of epochs; while the testing is performed using the \textit{predict} and \textit{predict\_proba} functions and its accuracy visualised with a confusion matrix (counting the number of true positives/negatives and false positives/negatives) in a heatmap. These results can be visualised in Section \ref{sec:eval-errorloss-cm}.
 
 % ----------------------------------
 
 \subsubsection{CLI-Based Ticketing-Routing Agent (Intermediate Agent)}
 
-The intermediate agent is built on a CLI\footnote{Command Line Interface} as an interactive text-based application allowing a human user to submit a new ticket. The agent records the \textit{``Yes''}/\textit{``No''} answers to each tag to create a new ticket, which is then used to as input to the previously trained neural network to make a prediction. The neural net is loaded using \textit{joblib} and tested using the \textit{predict} and \textit{predict\_proba} function.\\
+The intermediate agent is built on a CLI\footnote{Command Line Interface} as an interactive text-based application allowing a human user to submit a new ticket. The agent records the \textit{``Yes''}/\textit{``No''} answers to each tag to create a new ticket, which is then used as input for the previously trained neural network to make a prediction. The neural net is loaded using \textit{joblib} and tested using the \textit{predict} and \textit{predict\_proba} function.\\
 
 To avoid the repetitive task of answering all questions, the agent makes early predictions after the third, fifth and seventh questions. The prediction is made by filling out the missing fields in the ticket with the most common value (\textit{mode}) in the original CSV data.\\
 
@@ -243,45 +242,43 @@ grid_search_params = {
 }
 \end{lstlisting}
 
-Overall, 12,600 unique combinations of parameters were tested in 1h26m. From these tests, 14 combinations of hyperparameters with a +98\% mean accuracy (over 5 runs for even 80\%/20\% data splits) emerged as optimal, as depicted in Figure \ref{fig:gridsearch_results}. These optimal parameters can be found in Appendix \ref{sec:appendix-optimal-hyperparameters}.
+Overall, 12,600 unique combinations of parameters were tested in 1h26m. From these tests, 14 combinations of hyperparameters with a +98\% mean accuracy (over 5 runs for even 80\%/20\% data splits) emerged as optimal, as depicted in Figure \ref{fig:gridsearch_results}. These optimal parameters can be found in more detail in Appendix \ref{sec:appendix-optimal-hyperparameters}.
 
 \begin{figure}[h] 
 \centerline{\includegraphics[width=\textwidth]{report/figures/gridsearch_results.png}}
-\caption{\label{fig:gridsearch_results}14 best combinations of hyperparamaters.}
+\caption{\label{fig:gridsearch_results}Distribution of the accuracies of the 12,600 combinations of hyperparameters tested with the grid search algorithm.}
 \end{figure}
 
-It is interesting to note that over half of these tests result in accuracies range between [90\%-98\%[. This is likely due to the fact that there is very little data to begin with (only 250 entry points), meaning that unless the chosen hyperparameters are really poor (e.g. 3 hidden units with momentum 0.1 and tolerance 1, resulting in a mean accuracy of 5.5\%), the neural network will always train to an acceptable level. The lack of data is also convincing enough to avoid finding optimal general parameters through validation.
+It is interesting to note that over half of these tests result in accuracies range between [90\%-98\%[. This is likely due to the fact that there is very little data to begin with (only 250 entry points), meaning that unless the chosen hyperparameters are really poor performance-wise (e.g. 3 hidden units with momentum 0.1 and tolerance 1, resulting in a mean accuracy of 5.5\%), the neural network will always train to an acceptable level. The lack of data is also a convincing argument to avoid finding optimal general parameters through validation.
 
 \subsubsection{Error Loss and Confusion Matrices}
 \label{sec:eval-errorloss-cm}
 
-Four optimal combinations of hyperparameters have been chosen for comparison, along with one poor set of hyperparameters to point out differences. These can be found in Table \ref{tab:nn_hyperparam_eval}.
+Four optimal combinations of hyperparameters have been chosen for comparison, along with one set of poor hyperparameters to point out differences. These can be found in Table \ref{tab:nn_hyperparam_eval}.
 
 \input{report/tables/nn_eval_param.tex}
 
-Plotting the error function with respect to the number of epochs required to reach the designated tolerance gives interesting insights about the training, as seen in Figure \ref{fig:error-loss-curve}. Indeed, the error loss curve is similar when using optimal parameters, quickly converging towards the desired error. A notable difference is the effect of a low momentum $\beta=0.1$ on the convergence speed, causing the light blue slope to reach the desired error more slowly than neural networks with high momentum. However, the actual difference between training with optimal parameters (accuracy $\geqslant$ 98\%) and sub-optimal parameters (accuracy = 38\%) is that the error loss curve is less smooth (small peaks can be seen across the curve, especially before epoch 50) due to the high learning rate and lack of neural units (data is under-fitted) and it characterised by multiple plateaus. Other cases of sub-optimal neural networks would cause ravines, which would be solved with a higher momentum, or will cause the neural network over-fit the data due to a high number of hidden neurons.
+Plotting the error function with respect to the number of epochs required to reach the designated tolerance gives interesting insights about the training, as seen in Figure \ref{fig:error-loss-curve}. Indeed, the error loss curves are all similar when using optimal parameters, quickly converging towards the desired error. A notable difference is the effect of a low momentum $\beta=0.1$ on the convergence speed, causing the light blue slope (5 hidden neurons) to reach the desired error more slowly than neural networks with high momentum.
 
 \begin{figure}[h] 
 \centerline{\includegraphics[width=\textwidth]{report/figures/error_loss_curve.png}}
-\caption{\label{fig:error-loss-curve}Error loss.}
+\caption{\label{fig:error-loss-curve}Error loss curves during the training of 5 different combinations of hyperparameters.}
 \end{figure}
 
-Once the training is completed, an aggregated confusion matrix over five runs is calculated and plotted in a heatmap for each neural network. The results can be seen in Figure \ref{fig:confusion_matrices}.
+However, the most notable difference between training with optimal parameters (accuracy $\geqslant$ 98\%) and sub-optimal parameters (accuracy = 38\%) is that the error loss curve is less smooth (small peaks can be seen across the curve before epoch 50) due to the high learning rate and lack of neural units (data is under-fitted). The curve is also characterised by multiple plateaus (straight lines with no improvements) and small ravines (minor increases in error), which would be solved with an increased momentum.\\
+
+Once the training is completed, an aggregated confusion matrix over five runs is calculated and plotted in a heatmap for each neural network. This clearly shows the superior accuracy of neural networks using optimal hyperparameters compared to sub-optimal hyperparameters. The results can be seen in Figure \ref{fig:confusion_matrices}.
 
 \begin{figure}[h] 
 \centerline{\includegraphics[width=1.1\textwidth]{report/figures/confusion_matrices.png}}
-\caption{\label{fig:confusion_matrices}CM.}
+\caption{\label{fig:confusion_matrices}5-run aggregate confusion matrices of the 5 different combinations of hyperparameters.}
 \end{figure}
 
 \subsubsection{Ticketing Routing Agent}
 
-A demo is attached in the appendix.
+The intermediate agent is evaluated by interacting with the CLI-based agent. The full interaction used for this evaluation can be found in Appendix \ref{sec:console-output-example}. It can be seen that when the user creates a new ticket with \textit{``No''} answered to every question, the agent predicts it should go to \textit{Networking}. The user then suggests sending it to \textit{Emergencies} and the neural network is consequently retrained (lines 49 to 53). When submitting a new ticket with the re-trained neural network, the agent immediately predicts that the ticket should go the \textit{Emergencies} after only three questions (line 62), proving that it correctly learned from its mistake.\\
 
-When the user creates a new ticket and suggest which team to respond to, the neural network is retrained. However, answering the questions the same way does not predict the 
-
-This may be due to the fact that a single row is not enough to shift the weights between the neurons enough for the desired output. Perhaps if a dozen users all suggested the same correction to the agent, then the weights would change enough to allow the suggested team to be predicted.
-
-% retraining with new row doesn;t change outcome, need more users to request change
+However, this is not always the case, as for cases where tags are similar for different outputs, a single team suggestion is not enough to shift the weights of the neural network for the agent to correctly predict the answer for the next iteration. If a dozen or more users all suggested the same correction to the agent, then the weights would change enough to allow the suggested team to be predicted.\\
 
 \textit{Design, Implementation \& Evaluation Section word count: \underline{XXXX}}
 
@@ -289,7 +286,20 @@ This may be due to the fact that a single row is not enough to shift the weights
 \section{Test Summary}
 \label{sec:test-summary}
 
-todo
+\subsection{Basic Agent Testing}
+
+The basic agent mainly consists in implementing a neural network using the Scikit library for Python. There is therefore no need to test the functions provided by Scikit.
+
+\subsection{Intermediate Agent Testing}
+
+The intermediate agent's behaviour is tested by ensuring that each prediction (early or not) are correct. This is done by checking that the answers to each question specified in Figure \ref{fig:intermediate_testing} (retrieved from the original \textit{tickets.csv} data file) correspond to the expected output. The green categories indicate a correct prediction. The full interaction between the user and the agent can be found in Appendix \ref{sec:console-output-testing}, with each correct prediction highlighted in yellow.
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=\textwidth]{report/figures/intermediate_testing.png}}
+\caption{\label{fig:intermediate_testing}Testing table for the intermediate agent, showing correct predictions for each response team.}
+\end{figure}
+
+Regarding the actual functionality of the agent's text-based CLI, edge cases are entered on the command line to show the robustness of the program. The full interaction can be found in Appendix \ref{sec:console-output-edge-cases}. Various inputs are used to answer \textit{``Yes''}/\textit{``No''} questions, such as \textit{y}, \textit{yy}, \textit{YeS}, \textit{YES}, \textit{No}, \textit{NO}, \textit{nn} and \textit{n} (lines 11 to 28). The same is repeated for the response team suggestion: the agent does not let the user input a wrong team, and will ask the question again if wrong input is given (lines 33 to 37). The user can correctly exit the program at any time by typing \textit{``quit''}.
 
 
 % -------------------------------------- APPENDICES ------------------------------------------ 
@@ -305,7 +315,12 @@ todo
 \section{Project File Structure}
 \label{sec:appendix-project-file-structure}
 
-todo
+A screenshot of the project’s file structure in the PyCharm IDE to illustrate the organisation of the Python modules and the data used.
+
+\begin{figure}[h] 
+\centerline{\includegraphics[width=0.55\textwidth]{report/figures/project_structure.png}}
+\label{fig:project_structure}
+\end{figure}
 
 % ------------------------
 
@@ -324,11 +339,41 @@ todo
     pages=1, 
     scale=0.8, 
     pagecommand=\section{Ticketing-Routing Agent Console Output Example}\label{sec:console-output-example}
-]{figures/cli-output.pdf}
+]{figures/cli-output-evaluation.pdf}
 \includepdf[
     pages=2, 
     scale=0.8
-]{figures/cli-output.pdf}
+]{figures/cli-output-evaluation.pdf}
+
+% ------------------------
+
+\clearpage
+\includepdf[
+    pages=1, 
+    scale=0.8, 
+    pagecommand=\section{Intermediate Agent Prediction Testing}\label{sec:console-output-testing}
+]{figures/cli-output-testing.pdf}
+\includepdf[
+    pages=2, 
+    scale=0.8
+]{figures/cli-output-testing.pdf}
+\includepdf[
+    pages=3, 
+    scale=0.8
+]{figures/cli-output-testing.pdf}
+
+% ------------------------
+
+\clearpage
+\includepdf[
+    pages=1, 
+    scale=0.8, 
+    pagecommand=\section{Intermediate Agent Text-Based Interface Testing}\label{sec:console-output-edge-cases}
+]{figures/cli-output-edge-cases.pdf}
+\includepdf[
+    pages=2, 
+    scale=0.8
+]{figures/cli-output-edge-cases.pdf}
 
 % ------------------------
 
